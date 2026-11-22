@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RememberKey — 15 вариантов оформления</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;700;800&family=Russo+One&family=Exo+2:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&family=Montserrat:wght@400;500;600;700;800&family=Inter+Tight:wght@300;400;600;800&family=Unbounded:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=Lora:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=Rubik:wght@500;700;900&family=Rubik+Mono+One&family=Oswald:wght@400;500;600;700&family=Sofia+Sans:wght@400;600;700;800&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=PT+Mono&family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  15 вариантов оформления RememberKey. В каждом — одни и те же три экрана: главная, проверка по памяти, подсмотр.
+  1 px = 1 dp, экран 412 × 915 (ROG Phone 9 Pro). Содержимое демонстрационное.
+-->
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #0b0c0f; color: #e9ecf1; font: 15px/1.45 "Golos Text", system-ui, sans-serif; }
+.top { position: sticky; top: 0; z-index: 20; background: #07080a; border-bottom: 1px solid #1d2026; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.top h1 { margin: 0; font-size: 18px; }
+.top .sp { flex: 1; }
+.top label { font-size: 13px; color: #a9b0bc; display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.top select { background: #16181d; color: #e9ecf1; border: 1px solid #2a2e36; border-radius: 6px; padding: 4px 6px; font: 13px "Golos Text", sans-serif; }
+.jump { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.jump a { color: #c9ced8; text-decoration: none; font-size: 12.5px; background: #15171c; border: 1px solid #23262d; padding: 4px 9px; border-radius: 999px; }
+.jump a:hover { border-color: #3fd09e; color: #fff; }
+.intro { padding: 18px 20px 0; color: #a9b0bc; max-width: 980px; }
+.intro b { color: #e9ecf1; font-weight: 600; }
+main { padding: 8px 20px 60px; }
+.var { padding: 26px 0 30px; border-bottom: 1px solid #1a1d23; }
+.vh { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 16px; max-width: 1100px; }
+.vnum { font: 800 40px/1 "Golos Text", sans-serif; color: #2b3039; min-width: 58px; }
+.vh h2 { margin: 0 0 4px; font-size: 22px; display: flex; gap: 10px; align-items: center; }
+.vh h2 .tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #1d2026; color: #a9b0bc; }
+.vh h2 .tag.light { background: #f2ece0; color: #27231e; }
+.vh p { margin: 0 0 8px; color: #b3b9c4; max-width: 760px; }
+.meta { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: #8a919d; }
+.sw { display: flex; gap: 4px; }
+.sw i { width: 22px; height: 22px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+.phones { display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start; zoom: var(--z, .62); }
+figure { margin: 0; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+figcaption { font-size: 22px; color: #8a919d; }
+/* компактный режим: только главная */
+body.compact main { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 0 18px; }
+body.compact .var { border: 0; padding: 18px 0; }
+body.compact .vh { flex-direction: column; gap: 4px; margin-bottom: 10px; }
+body.compact .vh p, body.compact .meta, body.compact .vnum { display: none; }
+body.compact .vh h2 { font-size: 16px; }
+body.compact .vh h2::before { content: attr(data-n); color: #59606c; }
+body.compact .phones figure:not(:first-child) { display: none; }
+body.compact .phones { zoom: .62; }
+body.compact figcaption { display: none; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ============ телефон и общие части ============ */
+.var {
+  --bg: #14161a; --surface: #1c1f24; --surface2: #24282e; --surface3: #2f343b; --line: #2a2e35;
+  --text: #f3f5f8; --text2: #b9bfc9; --text3: #7d8591;
+  --acc: #3fd09e; --accText: #062419; --accSoft: #173a2f; --acc2: #6aa8ff; --acc2Soft: #1b2b44;
+  --warn: #f2b33d; --warnSoft: #3a2f17; --warnText: #f5d9a3; --bad: #f06262;
+  --radius: 18px; --btnRadius: 14px; --chipRadius: 12px; --avRadius: 14px; --trackRadius: 3px;
+  --keyRadius: 7px; --keyBg: #2b3037; --keyFn: #3a4049; --kbBg: #0e1013; --keyText: #fff; --navBg: var(--surface);
+  --font: "Golos Text", sans-serif; --fontHead: "Golos Text", sans-serif; --fontMono: "JetBrains Mono", monospace;
+  --frame: #050506;
+}
+.phone { width: 412px; height: 915px; box-sizing: content-box; border: 10px solid var(--frame); border-radius: 38px; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); display: flex; flex-direction: column; position: relative; box-shadow: 0 12px 50px #000a, 0 0 0 1px #2a2a2e; }
+.status { height: 30px; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 0 22px; font: 500 13px var(--font); color: var(--text2); }
+.status .si { display: flex; gap: 6px; align-items: center; }
+.scr { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.gesture { height: 18px; flex: none; display: flex; justify-content: center; align-items: center; }
+.gesture::after { content: ""; width: 108px; height: 4px; border-radius: 2px; background: var(--text2); opacity: .7; }
+.appbar { height: 60px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 12px 0 8px; }
+.ib { width: 44px; height: 44px; display: grid; place-items: center; color: var(--text2); flex: none; }
+.ttl { flex: 1; min-width: 0; font: 700 20px/1.2 var(--fontHead); padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttl .sub { font: 400 13px var(--font); color: var(--text3); margin-top: 2px; letter-spacing: 0; text-transform: none; font-style: normal; text-shadow: none; }
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.body > * { flex-shrink: 0; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.cap { font: 700 12px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--warn); }
+.big { font: 800 28px/1.15 var(--fontHead); }
+.muted { color: var(--text2); font-size: 14px; }
+.btn { height: 52px; border-radius: var(--btnRadius); background: var(--acc); color: var(--accText); font: 700 16px var(--font); display: flex; align-items: center; justify-content: center; gap: 8px; flex: none; }
+.sect { font: 700 12px var(--font); color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin: 6px 4px -2px; }
+.kc { background: var(--surface); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.col { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.kav { width: 44px; height: 44px; border-radius: var(--avRadius); display: grid; place-items: center; font: 800 20px var(--fontHead); background: var(--accSoft); color: var(--acc); flex: none; }
+.kav.b { background: var(--acc2Soft); color: var(--acc2); }
+.kname { font: 700 17px var(--fontHead); }
+.kmeta { font-size: 13px; color: var(--text3); }
+.st { font: 700 12px var(--font); padding: 5px 10px; border-radius: var(--chipRadius); background: var(--surface2); color: var(--text2); white-space: nowrap; flex: none; }
+.st.due { background: var(--warnSoft); color: var(--warn); }
+.track { display: flex; gap: 4px; }
+.track i { flex: 1; height: 6px; border-radius: var(--trackRadius); background: var(--surface3); }
+.track i.d { background: var(--acc); }
+.track i.n { background: var(--warn); }
+.kfoot { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text2); }
+.copy { color: var(--acc); font-weight: 700; font-size: 12px; display: flex; gap: 4px; align-items: center; }
+.add { height: 54px; border: 1.5px dashed var(--surface3); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text2); font-weight: 700; }
+.klist { background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+.kr { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.kr:first-child { border-top: 0; }
+.kr .kav { width: 40px; height: 40px; font-size: 17px; }
+.kr .track { margin-top: 7px; }
+.kr .track i { height: 4px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { background: var(--surface); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 160px; }
+.tile .tt { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.tname { font: 700 18px var(--fontHead); margin-top: auto; }
+.tile.addt { align-items: center; justify-content: center; color: var(--text2); border: 1.5px dashed var(--surface3); background: transparent; font-weight: 700; min-height: 110px; gap: 4px; }
+.hero { position: relative; width: 200px; height: 200px; margin: 4px auto 0; }
+.hero .hc { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.hn { font: 800 58px/1 var(--fontHead); }
+.hl { font-size: 13px; color: var(--text2); text-align: center; margin-top: 4px; }
+.ring .bgc { fill: none; stroke: var(--surface3); stroke-width: 10; }
+.ring .arc { fill: none; stroke: var(--acc); stroke-width: 10; stroke-linecap: round; }
+.ring .ticks { display: none; stroke: var(--text3); stroke-width: 1.5; }
+.stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stats3 div { background: var(--surface); border-radius: calc(var(--radius) * .7); padding: 10px 6px; display: flex; flex-direction: column; align-items: center; }
+.stats3 b { font: 800 20px var(--fontHead); }
+.stats3 span { font-size: 11px; color: var(--text3); }
+.nav { height: 70px; flex: none; display: flex; background: var(--navBg); border-top: 1px solid var(--line); }
+.nav .it { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 500 12px var(--font); color: var(--text3); }
+.nav .pill { width: 58px; height: 30px; border-radius: 15px; display: grid; place-items: center; }
+.nav .it.on { color: var(--text); }
+.nav .it.on .pill { background: var(--accSoft); color: var(--acc); }
+.fab { display: none; position: absolute; right: 16px; bottom: 88px; height: 56px; padding: 0 20px 0 16px; border-radius: 16px; align-items: center; gap: 10px; font: 500 15px var(--font); }
+.cmd, .hudline { display: none; }
+/* проверка */
+.prompt { font: 700 20px var(--fontHead); }
+.hint { font-size: 14px; color: var(--text3); margin-top: 2px; }
+.field { background: var(--surface2); border-radius: var(--radius); min-height: 100px; padding: 16px 52px 16px 16px; font: 500 21px/1.5 var(--fontMono); box-shadow: inset 0 0 0 1.5px var(--acc); position: relative; color: var(--text); letter-spacing: 1px; }
+.field .eye { position: absolute; right: 12px; top: 12px; color: var(--text2); }
+.caret { display: inline-block; width: 2px; height: 22px; background: var(--acc); vertical-align: -4px; margin-left: 2px; }
+.typed { font-size: 13px; color: var(--text3); }
+.pad { padding: 12px 16px 14px; flex: none; display: flex; flex-direction: column; gap: 8px; }
+.kb { background: var(--kbBg); padding: 6px 3px 8px; display: flex; flex-direction: column; gap: 7px; flex: none; }
+.kbcap { font-size: 11px; color: var(--text3); display: flex; gap: 5px; justify-content: center; align-items: center; height: 14px; }
+.kb .r { display: flex; gap: 5px; justify-content: center; padding: 0 2px; }
+.kb .k { flex: 1 1 0; min-width: 0; max-width: 38px; height: 46px; border-radius: var(--keyRadius); background: var(--keyBg); color: var(--keyText); display: grid; place-items: center; font: 400 19px var(--font); }
+.kb .k.fn { flex: 1.5 1 0; max-width: none; background: var(--keyFn); font-size: 14px; font-weight: 700; }
+.kb .k.sp { flex: 5 1 0; max-width: none; font-size: 13px; color: var(--text3); }
+.kb .k.go { background: var(--acc); color: var(--accText); }
+/* подсмотр */
+.timer { font: 700 14px var(--fontMono); color: var(--warn); background: var(--warnSoft); padding: 6px 10px; border-radius: var(--chipRadius); }
+.note { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 12px 14px; border-radius: var(--radius); background: var(--warnSoft); color: var(--warnText); }
+.note svg { flex: none; }
+.lh { display: flex; gap: 12px; align-items: flex-start; }
+.lv { width: 26px; height: 26px; border-radius: 13px; background: var(--warnSoft); color: var(--warn); display: grid; place-items: center; font: 800 13px var(--font); flex: none; }
+.lt { font: 700 16px var(--fontHead); }
+.ld { font-size: 13px; color: var(--text3); }
+.phrase { background: var(--surface2); border-radius: calc(var(--radius) * .7); padding: 12px 14px; font: 500 18px/1.7 var(--font); }
+.phrase .bad { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 2px; }
+.phrase .op { color: var(--warn); }
+.phrase .hid { color: var(--text3); letter-spacing: 2px; }
+.hold { height: 46px; border-radius: var(--btnRadius); background: var(--warnSoft); color: var(--warn); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
+
+/* ============ 2 · Игровой красный ============ */
+.v2 { --bg: #0b0b0c; --surface: #161618; --surface2: #1f1f22; --surface3: #2b2b30; --line: #26262a; --text: #f4f4f5; --text2: #b4b4ba; --text3: #76767e;
+  --acc: #ff2b2b; --accText: #fff; --accSoft: #3a0e0e; --acc2: #ff8a00; --acc2Soft: #3a2108; --warn: #ff8a00; --warnSoft: #33200a; --warnText: #ffc98a; --bad: #ff2b2b;
+  --radius: 0px; --btnRadius: 0px; --chipRadius: 0; --avRadius: 0; --trackRadius: 0; --keyRadius: 2px; --keyBg: #1b1b1e; --keyFn: #2a2a2e; --kbBg: #000;
+  --font: "Exo 2", sans-serif; --fontHead: "Russo One", sans-serif; }
+.v2 .card, .v2 .tile, .v2 .field, .v2 .note { clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+.v2 .today { background: repeating-linear-gradient(135deg, rgba(255,43,43,.07) 0 10px, transparent 10px 22px), linear-gradient(110deg, #2a0909, #161618 60%); border-left: 4px solid var(--acc); }
+.v2 .ttl, .v2 .big, .v2 .prompt, .v2 .lt, .v2 .tname, .v2 .hn { text-transform: uppercase; font-weight: 400; letter-spacing: .02em; }
+.v2 .btn { clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); text-transform: uppercase; letter-spacing: .1em; font: 400 16px var(--fontHead); }
+.v2 .kav { clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: var(--acc); color: #fff; font-weight: 400; }
+.v2 .kav.b { background: var(--acc2); color: #1a0d00; }
+.v2 .track i { transform: skewX(-25deg); height: 8px; }
+.v2 .st.due { background: var(--acc); color: #fff; }
+.v2 .tile.due { box-shadow: inset 0 -3px 0 var(--acc); }
+.v2 .nav { border-top: 1px solid #2a0a0a; }
+.v2 .nav .it.on .pill { background: transparent; color: var(--acc); box-shadow: inset 0 -3px 0 var(--acc); border-radius: 0; }
+.v2 .field { box-shadow: inset 4px 0 0 var(--acc); }
+.v2 .kb .k.go { clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+.v2 .lv { border-radius: 0; transform: skewX(-15deg); background: var(--acc); color: #fff; }
+.v2 .sect { color: var(--acc); }
+.v2 .hold { clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
+
+/* ============ 3 · Терминал ============ */
+.v3 { --bg: #040704; --surface: transparent; --surface2: #0a140b; --surface3: #163019; --line: #1d4021; --text: #c6f8c2; --text2: #86d982; --text3: #4d8a4a;
+  --acc: #3dff6e; --accText: #021003; --accSoft: #0d2a12; --acc2: #3dff6e; --acc2Soft: #0d2a12; --warn: #ffcf3d; --warnSoft: #2a230a; --warnText: #ffe08a; --bad: #ff5f5f;
+  --radius: 0; --btnRadius: 0; --chipRadius: 0; --avRadius: 0; --trackRadius: 0; --keyRadius: 0; --keyBg: transparent; --keyFn: #0d2a12; --kbBg: #020402; --keyText: #86d982; --navBg: #040704;
+  --font: "JetBrains Mono", monospace; --fontHead: "JetBrains Mono", monospace; }
+.v3 .phone::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px); }
+.v3 .card, .v3 .klist { border: 1px dashed #2a6b30; }
+.v3 .ttl { font-size: 17px; }
+.v3 .ttl::before { content: "~/"; color: var(--text3); }
+.v3 .cmd { display: block; color: var(--text3); font-size: 13px; }
+.v3 .cmd b { color: var(--acc); font-weight: 500; }
+.v3 .big { font-size: 24px; font-weight: 700; }
+.v3 .btn { background: transparent; color: var(--acc); border: 1px solid var(--acc); text-transform: uppercase; font-weight: 500; }
+.v3 .btn::before { content: "[ "; } .v3 .btn::after { content: " ]"; }
+.v3 .kav { background: transparent; width: auto; display: flex; align-items: center; color: var(--acc); font-size: 16px; font-weight: 700; }
+.v3 .kav::before { content: "["; } .v3 .kav::after { content: "]"; }
+.v3 .kav.b { background: transparent; color: var(--acc); }
+.v3 .track { gap: 3px; } .v3 .track i { height: 10px; background: #12301a; }
+.v3 .track i.n { animation: blink 1s steps(1) infinite; }
+.v3 .st { background: transparent; border: 1px solid currentColor; font-weight: 500; }
+.v3 .st.due { background: var(--warn); color: #000; border-color: var(--warn); }
+.v3 .nav { border-top: 1px dashed #2a6b30; }
+.v3 .nav .pill { display: none; }
+.v3 .nav .it { font-size: 13px; }
+.v3 .nav .it.on .lb { background: var(--acc); color: #000; padding: 2px 6px; }
+.v3 .nav .lb::before { content: "["; } .v3 .nav .lb::after { content: "]"; }
+.v3 .field { box-shadow: none; border: 1px dashed var(--acc); background: transparent; }
+.v3 .field::before { content: "> "; color: var(--acc); }
+.v3 .caret { width: 11px; animation: blink 1s steps(1) infinite; }
+.v3 .kb .k { border: 1px solid #1d4021; }
+.v3 .kb .k.go { color: #000; }
+.v3 .note { background: transparent; border: 1px dashed var(--warn); color: var(--warn); }
+.v3 .lv { background: transparent; border: 1px solid var(--warn); border-radius: 0; }
+.v3 .phrase { background: transparent; border-left: 2px solid var(--acc); border-radius: 0; font-family: var(--fontMono); font-size: 16px; }
+.v3 .hold { background: transparent; border: 1px solid var(--warn); }
+.v3 .add { border: 1px dashed #2a6b30; }
+.v3 .sect::before { content: "# "; }
+.v3 .timer { background: transparent; border: 1px solid var(--warn); }
+
+/* ============ 4 · Сейф ============ */
+.v4 { --bg: #111214; --surface: #1a1b1e; --surface2: #222428; --surface3: #2e3035; --line: #2c2a25; --text: #efe8d6; --text2: #c2b9a3; --text3: #857d6c;
+  --acc: #c9a45c; --accText: #1b1406; --accSoft: #2e2616; --acc2: #9fb6c9; --acc2Soft: #1f2a33; --warn: #e3b45a; --warnSoft: #33280f; --warnText: #f0d7a1; --bad: #d9634e;
+  --radius: 10px; --btnRadius: 6px; --chipRadius: 4px; --avRadius: 50%; --keyRadius: 6px; --keyBg: #202226; --keyFn: #2c2e33; --kbBg: #0c0d0e;
+  --font: "IBM Plex Sans", sans-serif; --fontHead: "Cormorant Garamond", serif; --fontMono: "IBM Plex Mono", monospace; }
+.v4 .phone { background: radial-gradient(120% 60% at 50% 0%, #1f2023, #111214 70%); }
+.v4 .card, .v4 .klist, .v4 .stats3 div { border: 1px solid rgba(201,164,92,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 6px 18px rgba(0,0,0,.35); background: linear-gradient(180deg, #1d1e21, #17181b); }
+.v4 .ttl { font-size: 28px; font-weight: 600; }
+.v4 .prompt, .v4 .lt, .v4 .kname { font-weight: 700; }
+.v4 .prompt { font-size: 25px; } .v4 .kname { font-size: 20px; } .v4 .lt { font-size: 19px; }
+.v4 .btn { background: linear-gradient(180deg, #e0bf74, #a8843f); color: #1b1406; text-transform: uppercase; letter-spacing: .16em; font-size: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 #6e5524; }
+.v4 .kav { background: radial-gradient(circle at 35% 30%, #3a3324, #1e1a12); color: var(--acc); border: 1px solid rgba(201,164,92,.5); font-weight: 700; }
+.v4 .kav.b { background: radial-gradient(circle at 35% 30%, #2a3540, #151b21); color: var(--acc2); border-color: rgba(159,182,201,.45); }
+.v4 .ring .ticks { display: block; stroke: rgba(201,164,92,.55); }
+.v4 .ring .arc { stroke: url(#brass); stroke-width: 8; }
+.v4 .ring .bgc { stroke-width: 8; }
+.v4 .hn { font-weight: 700; color: var(--acc); }
+.v4 .hn, .v4 .stats3 b, .v4 .big { font-variant-numeric: lining-nums; font-feature-settings: "lnum"; }
+.v4 .sect { color: var(--acc); letter-spacing: .2em; }
+.v4 .kb .k { box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+.v4 .st.due { background: transparent; box-shadow: inset 0 0 0 1px var(--warn); }
+.v4 .nav { background: #141517; border-top: 1px solid rgba(201,164,92,.2); }
+
+/* ============ 5 · Полночное стекло ============ */
+.v5 { --bg: #0b0d1d; --surface: rgba(255,255,255,.07); --surface2: rgba(255,255,255,.09); --surface3: rgba(255,255,255,.16); --line: rgba(255,255,255,.1); --text: #f4f5ff; --text2: #c5c8e6; --text3: #8a8fb5;
+  --acc: #a594ff; --accText: #140f33; --accSoft: rgba(165,148,255,.22); --acc2: #6fe3ff; --acc2Soft: rgba(111,227,255,.18); --warn: #ffd27a; --warnSoft: rgba(255,210,122,.16); --warnText: #ffe7b8; --bad: #ff7b8f;
+  --radius: 24px; --btnRadius: 999px; --chipRadius: 999px; --avRadius: 16px; --keyRadius: 10px; --keyBg: rgba(255,255,255,.09); --keyFn: rgba(255,255,255,.17); --kbBg: rgba(10,12,30,.55); --navBg: rgba(255,255,255,.05);
+  --font: "Montserrat", sans-serif; --fontHead: "Montserrat", sans-serif; }
+.v5 .phone { background: radial-gradient(circle at 15% 8%, #4b33a8 0, transparent 38%), radial-gradient(circle at 95% 45%, #0e6a8c 0, transparent 40%), radial-gradient(circle at 30% 95%, #6a1f6e 0, transparent 40%), #0b0d1d; }
+.v5 .card, .v5 .klist, .v5 .field, .v5 .nav, .v5 .kb, .v5 .stats3 div, .v5 .note { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.12); }
+.v5 .btn { background: linear-gradient(135deg, #b6a8ff, #7f6cf5); color: #fff; box-shadow: 0 8px 24px rgba(127,108,245,.45); }
+.v5 .ring .arc { stroke: url(#glass); }
+.v5 .ring .bgc { stroke: rgba(255,255,255,.1); }
+.v5 .field { box-shadow: 0 0 0 1px rgba(165,148,255,.6); }
+.v5 .ttl { font-weight: 800; }
+
+/* ============ 6 · OLED ============ */
+.v6 { --bg: #000; --surface: #000; --surface2: #0f0f0f; --surface3: #262626; --line: #1c1c1c; --text: #fff; --text2: #a1a1a1; --text3: #5e5e5e;
+  --acc: #fff; --accText: #000; --accSoft: #161616; --acc2: #fff; --acc2Soft: #161616; --warn: #ff5a1f; --warnSoft: #1f0d05; --warnText: #ffb08a; --bad: #ff453a;
+  --radius: 0; --btnRadius: 999px; --chipRadius: 999px; --avRadius: 50%; --keyRadius: 6px; --keyBg: #141414; --keyFn: #232323; --kbBg: #000; --navBg: #000;
+  --font: "Inter Tight", sans-serif; --fontHead: "Inter Tight", sans-serif; }
+.v6 .ttl { font-weight: 800; letter-spacing: -.02em; }
+.v6 .home .appbar { height: 80px; }
+.v6 .home .ttl { font-size: 36px; letter-spacing: -.03em; }
+.v6 .card { padding: 16px 2px; border-top: 1px solid #262626; }
+.v6 .today .big { font-size: 64px; font-weight: 800; letter-spacing: -.05em; line-height: .95; }
+.v6 .today .btn { width: 140px; }
+.v6 .kav { background: transparent; box-shadow: inset 0 0 0 1px #3a3a3a; color: #fff; font-weight: 600; }
+.v6 .kav.b { background: transparent; color: #fff; }
+.v6 .track i { height: 2px; } .v6 .kr .track i { height: 2px; }
+.v6 .klist { background: transparent; border-top: 1px solid #262626; border-bottom: 1px solid #262626; }
+.v6 .kr { padding: 14px 2px; border-color: #1c1c1c; }
+.v6 .st { background: transparent; box-shadow: inset 0 0 0 1px #333; }
+.v6 .st.due { background: var(--warn); color: #000; box-shadow: none; }
+.v6 .nav .it.on .pill { background: #fff; color: #000; }
+.v6 .field { box-shadow: none; border-bottom: 2px solid #fff; background: transparent; padding-left: 2px; min-height: 80px; }
+.v6 .prompt { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+.v6 .lvl { padding: 14px 2px; }
+.v6 .phrase { background: transparent; padding: 0; font-size: 22px; }
+.v6 .note { background: transparent; box-shadow: inset 0 0 0 1px #262626; color: var(--text2); border-radius: 0; }
+.v6 .add { border: 1px solid #262626; border-radius: 999px; }
+.v6 .lv { background: transparent; box-shadow: inset 0 0 0 1px var(--warn); }
+.v6 .hold { background: transparent; box-shadow: inset 0 0 0 1px var(--warn); }
+
+/* ============ 7 · Неон ============ */
+.v7 { --bg: #06070f; --surface: rgba(9,13,32,.9); --surface2: rgba(14,20,48,.92); --surface3: #1a2350; --line: rgba(0,240,255,.2); --text: #e8f8ff; --text2: #9fd8ea; --text3: #5b7f99;
+  --acc: #00f0ff; --accText: #001018; --accSoft: rgba(0,240,255,.12); --acc2: #ff2bd6; --acc2Soft: rgba(255,43,214,.14); --warn: #ff2bd6; --warnSoft: rgba(255,43,214,.14); --warnText: #ffb3f1; --bad: #ff3b6b;
+  --radius: 8px; --btnRadius: 8px; --chipRadius: 4px; --avRadius: 8px; --keyRadius: 6px; --keyBg: rgba(0,240,255,.06); --keyFn: rgba(0,240,255,.14); --kbBg: #04050c; --navBg: #05060d;
+  --font: "Manrope", sans-serif; --fontHead: "Unbounded", sans-serif; --fontMono: "JetBrains Mono", monospace; }
+.v7 .phone { background: linear-gradient(rgba(0,240,255,.05) 1px, transparent 1px) 0 0/24px 24px, linear-gradient(90deg, rgba(0,240,255,.05) 1px, transparent 1px) 0 0/24px 24px, radial-gradient(circle at 50% 0%, #1a0f3a, #06070f 60%); }
+.v7 .card, .v7 .tile, .v7 .field { border: 1px solid rgba(0,240,255,.35); box-shadow: 0 0 14px rgba(0,240,255,.12), inset 0 0 14px rgba(0,240,255,.05); }
+.v7 .ttl, .v7 .big, .v7 .prompt, .v7 .tname { text-shadow: 0 0 10px rgba(0,240,255,.55); font-weight: 600; }
+.v7 .ttl { font-size: 18px; } .v7 .big { font-size: 24px; } .v7 .prompt { font-size: 17px; } .v7 .lt { font-size: 14px; } .v7 .tname { font-size: 15px; }
+.v7 .btn { background: transparent; color: var(--acc); border: 1.5px solid var(--acc); box-shadow: 0 0 16px rgba(0,240,255,.4), inset 0 0 12px rgba(0,240,255,.2); text-transform: uppercase; letter-spacing: .12em; font: 600 13px var(--fontHead); }
+.v7 .tile.due { border-color: var(--acc2); box-shadow: 0 0 18px rgba(255,43,214,.35), inset 0 0 14px rgba(255,43,214,.08); }
+.v7 .track i.d { box-shadow: 0 0 6px var(--acc); } .v7 .track i.n { box-shadow: 0 0 6px var(--warn); }
+.v7 .kav { background: transparent; box-shadow: inset 0 0 0 1px var(--acc); text-shadow: 0 0 8px var(--acc); font-size: 16px; }
+.v7 .kav.b { color: var(--acc2); box-shadow: inset 0 0 0 1px var(--acc2); text-shadow: 0 0 8px var(--acc2); }
+.v7 .kb .k { box-shadow: inset 0 0 0 1px rgba(0,240,255,.18); }
+.v7 .nav { border-top: 1px solid rgba(0,240,255,.25); }
+.v7 .nav .it.on .pill { box-shadow: 0 0 12px rgba(0,240,255,.5); }
+.v7 .kmeta, .v7 .hint, .v7 .typed, .v7 .sect { font-family: var(--fontMono); }
+.v7 .st.due { box-shadow: 0 0 10px rgba(255,43,214,.4); }
+.v7 .phrase { box-shadow: inset 0 0 0 1px rgba(0,240,255,.2); }
+
+/* ============ 8 · Material You ============ */
+.v8 { --bg: #141218; --surface: #211f26; --surface2: #2b2930; --surface3: #36343b; --line: #2b2930; --text: #e6e0e9; --text2: #cac4d0; --text3: #938f99;
+  --acc: #d0bcff; --accText: #381e72; --accSoft: #4f378b; --acc2: #ccc2dc; --acc2Soft: #4a4458; --warn: #efb8c8; --warnSoft: #633b48; --warnText: #ffd8e4; --bad: #f2b8b5;
+  --radius: 24px; --btnRadius: 999px; --chipRadius: 8px; --avRadius: 50%; --keyRadius: 8px; --keyBg: #2b2930; --keyFn: #4a4458; --kbBg: #1d1b20; --navBg: #211f26;
+  --font: "Roboto", sans-serif; --fontHead: "Roboto", sans-serif; }
+.v8 .ttl { font-size: 22px; font-weight: 400; }
+.v8 .home .appbar { height: 72px; }
+.v8 .home .ttl { font-size: 28px; }
+.v8 .kav { color: #eaddff; }
+.v8 .kav.b { color: #e8def8; }
+.v8 .today { background: #4f378b; }
+.v8 .today .cap { color: #eaddff; } .v8 .today .big { color: #eaddff; font-weight: 500; } .v8 .today .muted { color: #d0bcff; }
+.v8 .today .btn { background: #eaddff; color: #21005d; }
+.v8 .st.due { color: #ffd8e4; }
+.v8 .track i { height: 4px; border-radius: 2px; }
+.v8 .add { display: none; }
+.v8 .fab { display: flex; background: #4f378b; color: #eaddff; box-shadow: 0 4px 10px rgba(0,0,0,.35); }
+.v8 .nav { height: 80px; border-top: 0; }
+.v8 .nav .pill { width: 64px; height: 32px; border-radius: 16px; }
+.v8 .nav .it.on .pill { background: #4a4458; color: #e8def8; }
+.v8 .field { box-shadow: inset 0 -2px 0 var(--acc); border-radius: 12px 12px 0 0; background: #36343b; }
+.v8 .big, .v8 .prompt, .v8 .kname, .v8 .lt { font-weight: 500; }
+.v8 .lv { background: #633b48; color: #ffd8e4; }
+
+/* ============ 9 · Арктика ============ */
+.v9 { --bg: #2e3440; --surface: #3b4252; --surface2: #434c5e; --surface3: #4c566a; --line: #434c5e; --text: #eceff4; --text2: #d8dee9; --text3: #9aa5b8;
+  --acc: #88c0d0; --accText: #2e3440; --accSoft: rgba(136,192,208,.2); --acc2: #b48ead; --acc2Soft: rgba(180,142,173,.22); --warn: #ebcb8b; --warnSoft: rgba(235,203,139,.16); --warnText: #f3dfb4; --bad: #bf616a;
+  --radius: 12px; --btnRadius: 10px; --chipRadius: 6px; --avRadius: 10px; --keyRadius: 6px; --keyBg: #434c5e; --keyFn: #4c566a; --kbBg: #272c36; --navBg: #3b4252;
+  --font: "Manrope", sans-serif; --fontHead: "Manrope", sans-serif; }
+.v9 .ttl { font-weight: 800; }
+.v9 .btn { box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.v9 .today { background: linear-gradient(160deg, #434c5e, #3b4252); }
+.v9 .field { background: #3b4252; }
+.v9 .phrase { background: #3b4252; box-shadow: inset 0 0 0 1px #4c566a; }
+
+/* ============ 10 · Янтарь ============ */
+.v10 { --bg: #17110c; --surface: #221a13; --surface2: #2c2219; --surface3: #3b2e22; --line: #2f251b; --text: #f7ecdc; --text2: #d6c3a8; --text3: #927e66;
+  --acc: #f4a940; --accText: #2a1704; --accSoft: #3e2b13; --acc2: #e2856a; --acc2Soft: #3e2219; --warn: #ffcf70; --warnSoft: #3d2f12; --warnText: #ffe3ae; --bad: #ec6a52;
+  --radius: 22px; --btnRadius: 18px; --chipRadius: 999px; --avRadius: 50%; --keyRadius: 10px; --keyBg: #2c2219; --keyFn: #3b2e22; --kbBg: #120d09;
+  --font: "Nunito", sans-serif; --fontHead: "Lora", serif; }
+.v10 .phone { background: radial-gradient(130% 70% at 50% -10%, #2d1e10, #17110c 60%); }
+.v10 .card, .v10 .kc { box-shadow: inset 0 1px 0 rgba(255,220,170,.06), 0 8px 22px rgba(0,0,0,.25); }
+.v10 .track { gap: 7px; }
+.v10 .track i { flex: none; width: 12px; height: 12px; border-radius: 50%; }
+.v10 .ttl { font-size: 24px; font-weight: 600; }
+.v10 .big, .v10 .kname, .v10 .prompt, .v10 .lt { font-weight: 600; }
+.v10 .btn { box-shadow: 0 6px 18px rgba(244,169,64,.25); font-weight: 800; }
+.v10 .phrase { font-family: var(--fontHead); font-size: 19px; }
+
+/* ============ 11 · Брутализм ============ */
+.v11 { --bg: #0e0e0e; --surface: #0e0e0e; --surface2: #1a1a1a; --surface3: #2a2a2a; --line: #f4f4f4; --text: #f4f4f4; --text2: #d0d0d0; --text3: #9a9a9a;
+  --acc: #ffe600; --accText: #000; --accSoft: #ffe600; --acc2: #f4f4f4; --acc2Soft: #f4f4f4; --warn: #ffe600; --warnSoft: #ffe600; --warnText: #000; --bad: #ff3b30;
+  --radius: 0; --btnRadius: 0; --chipRadius: 0; --avRadius: 0; --trackRadius: 0; --keyRadius: 0; --keyBg: #0e0e0e; --keyFn: #2a2a2a; --kbBg: #0e0e0e; --navBg: #0e0e0e;
+  --font: "Rubik", sans-serif; --fontHead: "Rubik", sans-serif; --fontMono: "Rubik Mono One", monospace; }
+.v11 .card, .v11 .tile, .v11 .field { border: 3px solid #f4f4f4; box-shadow: 6px 6px 0 #ffe600; }
+.v11 .ttl, .v11 .big, .v11 .prompt, .v11 .lt, .v11 .tname { text-transform: uppercase; font-weight: 900; letter-spacing: -.01em; }
+.v11 .ttl { font-size: 20px; }
+.v11 .home .ttl { font-size: 28px; }
+.v11 .btn { border: 3px solid #f4f4f4; box-shadow: 5px 5px 0 #f4f4f4; text-transform: uppercase; font-weight: 900; margin-right: 6px; }
+.v11 .kav { color: #000; font: 400 16px var(--fontMono); }
+.v11 .kav.b { color: #000; }
+.v11 .st { box-shadow: inset 0 0 0 2px #f4f4f4; background: transparent; color: #f4f4f4; }
+.v11 .st.due { color: #000; background: #ffe600; box-shadow: inset 0 0 0 2px #000; }
+.v11 .note, .v11 .lv, .v11 .timer { color: #000; }
+.v11 .hold { color: #000; border: 3px solid #f4f4f4; }
+.v11 .track i { height: 12px; box-shadow: inset 0 0 0 2px #f4f4f4; background: transparent; }
+.v11 .track i.d { background: #f4f4f4; } .v11 .track i.n { background: #ffe600; }
+.v11 .tile.due { background: #ffe600; color: #000; }
+.v11 .tile.due .kmeta { color: #333; }
+.v11 .tile.due .kav { background: #000; color: #ffe600; }
+.v11 .tile.due .st.due { background: #000; color: #ffe600; }
+.v11 .tile.due .track i { box-shadow: inset 0 0 0 2px #000; } .v11 .tile.due .track i.d { background: #000; } .v11 .tile.due .track i.n { background: #fff; }
+.v11 .tile.addt { border: 3px dashed #f4f4f4; box-shadow: none; }
+.v11 .today { background: #0e0e0e; }
+.v11 .kb .k { box-shadow: inset 0 0 0 2px #f4f4f4; }
+.v11 .kb .k.go { color: #000; }
+.v11 .nav { border-top: 3px solid #f4f4f4; }
+.v11 .nav .it.on .pill { background: #ffe600; color: #000; border-radius: 0; }
+.v11 .sect { color: #f4f4f4; font: 400 11px var(--fontMono); }
+.v11 .phrase { background: transparent; box-shadow: inset 0 0 0 2px #f4f4f4; }
+.v11 .phrase .op { background: #ffe600; color: #000; padding: 0 4px; }
+.v11 .cap { color: #ffe600; font-family: var(--fontMono); font-weight: 400; }
+
+/* ============ 12 · Тактический ============ */
+.v12 { --bg: #0a0c08; --surface: rgba(28,34,22,.55); --surface2: #141a10; --surface3: #2a3420; --line: #2f3b24; --text: #dfe8cf; --text2: #a9b893; --text3: #6b7a57;
+  --acc: #ffb000; --accText: #1a1200; --accSoft: rgba(255,176,0,.12); --acc2: #9ccc3a; --acc2Soft: rgba(156,204,58,.14); --warn: #ff6a1a; --warnSoft: rgba(255,106,26,.14); --warnText: #ffb48a; --bad: #ff3b30;
+  --radius: 0; --btnRadius: 0; --chipRadius: 0; --avRadius: 0; --trackRadius: 0; --keyRadius: 0; --keyBg: #11150d; --keyFn: #1d2416; --kbBg: #070805; --navBg: #0a0c08;
+  --font: "IBM Plex Mono", monospace; --fontHead: "Oswald", sans-serif; --fontMono: "IBM Plex Mono", monospace; }
+.v12 .phone { background: radial-gradient(circle at 50% 30%, #131a0d, #0a0c08 70%); }
+.v12 .card, .v12 .klist, .v12 .field {
+  background:
+    linear-gradient(var(--acc), var(--acc)) left top / 14px 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) left top / 2px 14px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) right top / 14px 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) right top / 2px 14px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) left bottom / 14px 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) left bottom / 2px 14px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) right bottom / 14px 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) right bottom / 2px 14px no-repeat,
+    rgba(28,34,22,.55);
+  box-shadow: inset 0 0 0 1px rgba(255,176,0,.1);
+}
+.v12 .ttl, .v12 .big, .v12 .prompt, .v12 .lt, .v12 .kname { font-family: var(--fontHead); text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
+.v12 .hudline { display: flex; justify-content: space-between; font: 500 11px var(--fontMono); color: var(--text3); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 6px 2px; letter-spacing: .1em; }
+.v12 .hudline b { color: var(--acc2); font-weight: 500; }
+.v12 .btn { text-transform: uppercase; letter-spacing: .22em; font: 600 15px var(--fontHead); }
+.v12 .kav { background: transparent; box-shadow: inset 0 0 0 1px var(--acc); font: 500 14px var(--fontMono); }
+.v12 .kav.b { box-shadow: inset 0 0 0 1px var(--acc2); }
+.v12 .track i { height: 6px; } .v12 .track i.n { animation: blink 1.2s steps(1) infinite; }
+.v12 .st { background: transparent; box-shadow: inset 0 0 0 1px var(--text3); font-weight: 500; letter-spacing: .08em; }
+.v12 .st.due { box-shadow: inset 0 0 0 1px var(--warn); }
+.v12 .nav .it.on .pill { background: transparent; box-shadow: inset 0 0 0 1px var(--acc); border-radius: 0; }
+.v12 .nav .lb { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; }
+.v12 .field { min-height: 96px; }
+.v12 .phrase { border-radius: 0; background: rgba(0,0,0,.25); }
+.v12 .sect { color: var(--acc); }
+
+/* ============ 13 · Аврора ============ */
+.v13 { --bg: #09091a; --surface: rgba(22,22,44,.82); --surface2: #1c1c36; --surface3: #2a2a4a; --line: #25254a; --text: #f3f1ff; --text2: #c3bfe6; --text3: #807cab;
+  --acc: #8b6cff; --accText: #fff; --accSoft: rgba(139,108,255,.2); --acc2: #2de2c8; --acc2Soft: rgba(45,226,200,.16); --warn: #ffa45c; --warnSoft: rgba(255,164,92,.16); --warnText: #ffd2ad; --bad: #ff5a7a;
+  --radius: 22px; --btnRadius: 16px; --chipRadius: 999px; --avRadius: 16px; --keyRadius: 9px; --keyBg: #1c1c36; --keyFn: #2a2a4a; --kbBg: #07071a; --navBg: rgba(14,14,32,.9);
+  --font: "Sofia Sans", sans-serif; --fontHead: "Sofia Sans", sans-serif; }
+.v13 .phone { background: radial-gradient(60% 35% at 15% 0%, rgba(45,226,200,.35), transparent 70%), radial-gradient(60% 40% at 85% 4%, rgba(139,108,255,.5), transparent 70%), radial-gradient(50% 30% at 50% 100%, rgba(255,90,180,.16), transparent 70%), #09091a; }
+.v13 .btn { background: linear-gradient(110deg, #8b6cff, #2de2c8); color: #fff; box-shadow: 0 10px 30px rgba(139,108,255,.35); }
+.v13 .track i.d { background: linear-gradient(90deg, #8b6cff, #2de2c8); }
+.v13 .ring .arc { stroke: url(#aurora); stroke-width: 12; }
+.v13 .ring .bgc { stroke-width: 12; }
+.v13 .kav { background: linear-gradient(135deg, #8b6cff, #2de2c8); color: #fff; }
+.v13 .kav.b { background: linear-gradient(135deg, #ff7ac6, #ffa45c); color: #fff; }
+.v13 .ttl { font-weight: 800; }
+.v13 .home .ttl { font-size: 26px; }
+.v13 .hn, .v13 .big, .v13 .prompt { font-weight: 800; }
+.v13 .nav .it.on .pill { background: linear-gradient(110deg, rgba(139,108,255,.4), rgba(45,226,200,.3)); color: #fff; }
+.v13 .field { box-shadow: inset 0 0 0 1.5px #8b6cff, 0 0 24px rgba(139,108,255,.2); }
+
+/* ============ 14 · Бумага ============ */
+.v14 { --bg: #f2ece0; --surface: #fbf7ef; --surface2: #efe7d7; --surface3: #ddd2bd; --line: #e2d8c4; --text: #27231e; --text2: #5a5248; --text3: #8b8172;
+  --acc: #27231e; --accText: #fbf7ef; --accSoft: #e7dfcf; --acc2: #1e4b7a; --acc2Soft: #dde6ef; --warn: #b3261e; --warnSoft: rgba(179,38,30,.08); --warnText: #8a1d17; --bad: #b3261e;
+  --radius: 4px; --btnRadius: 4px; --chipRadius: 2px; --avRadius: 50%; --keyRadius: 5px; --keyBg: #fffdf7; --keyFn: #e2d9c7; --kbBg: #e6dfd1; --keyText: #27231e; --navBg: #f7f1e5;
+  --font: "PT Serif", serif; --fontHead: "PT Serif", serif; --fontMono: "PT Mono", monospace; --frame: #1a1714; }
+.v14 .body { background: repeating-linear-gradient(180deg, transparent 0 31px, rgba(30,75,122,.10) 31px 32px); }
+.v14 .card, .v14 .klist { border: 1px solid #d8cdb7; box-shadow: 0 1px 0 #d8cdb7, 0 6px 14px rgba(60,40,20,.06); }
+.v14 .ttl { font-size: 21px; font-style: italic; }
+.v14 .home .ttl { font-size: 27px; }
+.v14 .st.due { background: transparent; color: var(--warn); box-shadow: inset 0 0 0 2px var(--warn); transform: rotate(-7deg); font-family: var(--fontMono); letter-spacing: .1em; text-transform: uppercase; }
+.v14 .kav { background: transparent; box-shadow: inset 0 0 0 1.5px var(--text); color: var(--text); font-weight: 700; }
+.v14 .kav.b { box-shadow: inset 0 0 0 1.5px var(--acc2); color: var(--acc2); }
+.v14 .track i { height: 4px; } .v14 .track i.d { background: var(--text); }
+.v14 .nav { border-top: 1px solid #d8cdb7; }
+.v14 .nav .it.on .pill { background: #e7dfcf; color: var(--text); }
+.v14 .field { box-shadow: none; border: 1px solid #c9bda4; background: #fffdf7; }
+.v14 .kb .k { box-shadow: 0 1px 0 #c9bda4; }
+.v14 .kb .k.go { color: #fbf7ef; }
+.v14 .phrase { background: #fffdf7; border: 1px solid #e2d8c4; }
+.v14 .phrase .op { color: var(--acc2); text-decoration: underline wavy; }
+.v14 .note { border: 1px dashed rgba(179,38,30,.4); }
+.v14 .hold { box-shadow: inset 0 0 0 1px rgba(179,38,30,.4); }
+.v14 .add { border-color: #c9bda4; }
+
+/* ============ 15 · Светлый минимал ============ */
+.v15 { --bg: #f2f3f7; --surface: #ffffff; --surface2: #f2f3f7; --surface3: #e3e6ec; --line: #e9ebef; --text: #101217; --text2: #4a4f5b; --text3: #8b909b;
+  --acc: #0a84ff; --accText: #fff; --accSoft: #e4f0ff; --acc2: #5e5ce6; --acc2Soft: #ecebff; --warn: #ff9500; --warnSoft: #fff2df; --warnText: #8a4f00; --bad: #ff3b30;
+  --radius: 16px; --btnRadius: 14px; --chipRadius: 999px; --avRadius: 12px; --keyRadius: 6px; --keyBg: #ffffff; --keyFn: #adb3bd; --kbBg: #d2d5db; --keyText: #101217; --navBg: rgba(255,255,255,.94);
+  --font: "Onest", sans-serif; --fontHead: "Onest", sans-serif; --frame: #111; }
+.v15 .ttl { font-weight: 700; }
+.v15 .home .appbar { height: 80px; }
+.v15 .home .ttl { font-size: 34px; font-weight: 800; letter-spacing: -.02em; }
+.v15 .card, .v15 .klist { box-shadow: 0 1px 2px rgba(16,18,23,.06); }
+.v15 .kb .k { box-shadow: 0 1px 0 #8d939e; }
+.v15 .kb .k.fn { color: #101217; }
+.v15 .kb .k.go { color: #fff; }
+.v15 .field { box-shadow: inset 0 0 0 2px var(--acc); background: #fff; }
+.v15 .status { color: #101217; }
+.v15 .nav { border-top: 1px solid #e3e6ec; }
+.v15 .phrase { background: #f2f3f7; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b6cff"/><stop offset="1" stop-color="#2de2c8"/></linearGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0d08a"/><stop offset="1" stop-color="#a8843f"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b6a8ff"/><stop offset="1" stop-color="#6fe3ff"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="top">
+  <h1>RememberKey — 15 вариантов оформления</h1>
+  <div class="sp"></div>
+  <label><input type="checkbox" id="compact"> Только главные экраны рядом</label>
+  <label>Масштаб
+    <select id="zoom"><option value=".5">50%</option><option value=".62" selected>62%</option><option value=".75">75%</option><option value="1">100%</option></select>
+  </label>
+  <nav class="jump" id="jump"></nav>
+</div>
+<div class="intro">В каждом варианте одни и те же три экрана: <b>главная</b>, <b>проверка по памяти</b> с клавиатурой приложения и <b>подсмотр</b>. Тринадцать тёмных, два светлых. Можно смешивать: «беру 4, но кнопки как в 11».</div>
+<main id="main"></main>
+
+<script>
+'use strict';
+const P = {
+  back: 'M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z',
+  close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+  check: 'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+  add: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
+  lock: 'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z',
+  eye: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
+  bksp: 'M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z',
+  key: 'M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z',
+  shield: 'M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z',
+  history: 'M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z',
+  shift: 'M12 4 3.5 13H8v7h8v-7h4.5z',
+};
+const ic = (p, s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor"><path d="${p}"/></svg>`;
+
+const V = [
+  { n: 1, name: 'Графит', home: 'cards', fonts: 'Golos Text, JetBrains Mono', sw: ['#14161a', '#1c1f24', '#f3f5f8', '#3fd09e', '#f2b33d', '#6aa8ff'],
+    d: 'Спокойный нейтральный тёмный с мятным акцентом. Развитие текущего прототипа: мягкие карточки, понятные статусы, ничего лишнего.' },
+  { n: 2, name: 'Игровой красный', home: 'tiles', fonts: 'Russo One, Exo 2', sw: ['#0b0b0c', '#161618', '#f4f4f5', '#ff2b2b', '#ff8a00', '#2b2b30'],
+    d: 'В духе игровых телефонов: чёрный, алый и оранжевый, срезанные углы, скошенные полоски прогресса и кнопки, заголовки заглавными.' },
+  { n: 3, name: 'Терминал', home: 'list', fonts: 'JetBrains Mono', sw: ['#040704', '#0a140b', '#c6f8c2', '#3dff6e', '#ffcf3d', '#163019'],
+    d: 'Зелёный моноширинный текст на чёрном, команды, квадратные скобки, мигающий курсор-блок и строки развёртки как у старого монитора.' },
+  { n: 4, name: 'Сейф', home: 'hero', fonts: 'Cormorant Garamond, IBM Plex Sans', sw: ['#111214', '#1a1b1e', '#efe8d6', '#c9a45c', '#e3b45a', '#9fb6c9'],
+    d: 'Тёмная сталь и латунь, шкала кодового замка вокруг кольца прогресса, антиква в заголовках. Ощущение банковской ячейки.' },
+  { n: 5, name: 'Полночное стекло', home: 'hero', fonts: 'Montserrat', sw: ['#0b0d1d', '#4b33a8', '#f4f5ff', '#a594ff', '#ffd27a', '#6fe3ff'],
+    d: 'Глубокий сине-фиолетовый фон с размытыми пятнами света и полупрозрачные стеклянные панели поверх.' },
+  { n: 6, name: 'OLED', home: 'list', fonts: 'Inter Tight', sw: ['#000000', '#0f0f0f', '#ffffff', '#a1a1a1', '#ff5a1f', '#262626'],
+    d: 'Чистый чёрный, огромные заголовки и тонкие линии вместо карточек. Единственный цвет — оранжевое «пора». На OLED-экране чёрные пиксели не светятся.' },
+  { n: 7, name: 'Неон', home: 'tiles', fonts: 'Unbounded, Manrope, JetBrains Mono', sw: ['#06070f', '#0e1430', '#e8f8ff', '#00f0ff', '#ff2bd6', '#1a2350'],
+    d: 'Сетка на фоне, бирюзовое и малиновое свечение, широкий шрифт. Киберпанк.' },
+  { n: 8, name: 'Material You', home: 'cards', fonts: 'Roboto', sw: ['#141218', '#211f26', '#e6e0e9', '#d0bcff', '#efb8c8', '#4f378b'],
+    d: 'Как системные приложения Android: тональные поверхности, сиреневая палитра, круглые кнопки и плавающая кнопка «Ключ».' },
+  { n: 9, name: 'Арктика', home: 'list', fonts: 'Manrope', sw: ['#2e3440', '#3b4252', '#eceff4', '#88c0d0', '#ebcb8b', '#b48ead'],
+    d: 'Холодная сине-серая палитра Nord: светлее остальных тёмных, тихий контраст, ключи одним списком.' },
+  { n: 10, name: 'Янтарь', home: 'cards', fonts: 'Lora, Nunito', sw: ['#17110c', '#221a13', '#f7ecdc', '#f4a940', '#ffcf70', '#e2856a'],
+    d: 'Тёплый тёмно-коричневый с медовыми акцентами, точки вместо полосок прогресса, мягкая антиква. Уютный «дневник памяти».' },
+  { n: 11, name: 'Брутализм', home: 'tiles', fonts: 'Rubik, Rubik Mono One', sw: ['#0e0e0e', '#f4f4f4', '#ffe600', '#ff3b30', '#2a2a2a', '#9a9a9a'],
+    d: 'Толстые белые рамки, жёлтые блоки, тени со сдвигом, всё заглавными. Грубо, зато очень читаемо.' },
+  { n: 12, name: 'Тактический', home: 'list', fonts: 'Oswald, IBM Plex Mono', sw: ['#0a0c08', '#141a10', '#dfe8cf', '#ffb000', '#ff6a1a', '#9ccc3a'],
+    d: 'Экран прицела: уголки-скобки, янтарь на оливковом, моноширинные подписи и служебная строка состояния.' },
+  { n: 13, name: 'Аврора', home: 'hero', fonts: 'Sofia Sans', sw: ['#09091a', '#1c1c36', '#f3f1ff', '#8b6cff', '#2de2c8', '#ffa45c'],
+    d: 'Тёмный фон с северным сиянием сверху, градиент фиолетовый → бирюзовый в кольце прогресса, кнопках и значках ключей.' },
+  { n: 14, name: 'Бумага', home: 'list', light: true, fonts: 'PT Serif, PT Mono', sw: ['#f2ece0', '#fbf7ef', '#27231e', '#b3261e', '#1e4b7a', '#d8cdb7'],
+    d: 'Светлая: бумага в линейку, чернила и красный штамп «Пора». Как записная книжка.' },
+  { n: 15, name: 'Светлый минимал', home: 'list', light: true, fonts: 'Onest', sw: ['#f2f3f7', '#ffffff', '#101217', '#0a84ff', '#ff9500', '#5e5ce6'],
+    d: 'Светлая, в стиле iOS: белые группы на сером фоне, синий акцент, крупный заголовок.' },
+];
+
+const KEYS = [
+  { id: 'A', name: 'Ключ A', meta: 'Фраза · 6 слов', st: 'Пора', due: true, done: 3, line: 'Проверка 3 из 6 · 7 дней', cls: '' },
+  { id: 'B', name: 'Ключ B', meta: 'Символы · 12', st: 'через 2 дня', due: false, done: 2, line: 'Проверка 2 из 6 · 3 дня', cls: 'b' },
+];
+const track = k => `<div class="track">${Array.from({ length: 7 }, (_, i) => `<i class="${i < k.done ? 'd' : i === k.done && k.due ? 'n' : ''}"></i>`).join('')}</div>`;
+const status = () => `<div class="status"><span>14:32</span><span class="si"><svg width="18" height="13" viewBox="0 0 18 14" fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5" y="6" width="3" height="8" rx="1"/><rect x="10" y="3" width="3" height="11" rx="1"/><rect x="15" y="0" width="3" height="14" rx="1"/></svg><svg width="24" height="13" viewBox="0 0 26 14" fill="currentColor"><rect x=".7" y="1.7" width="21" height="10.6" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="3.5" width="14" height="7" rx="1"/><rect x="23" y="5" width="2" height="4" rx="1"/></svg>78%</span></div>`;
+const appbar = (title, sub, close, right = '') => `<div class="appbar">${close ? `<div class="ib">${ic(P.close)}</div>` : ''}<div class="ttl">${title}${sub ? `<div class="sub">${sub}</div>` : ''}</div>${right}</div>`;
+const nav = () => {
+  const it = (p, l, on) => `<div class="it ${on ? 'on' : ''}"><div class="pill">${ic(p, 22)}</div><span class="lb">${l}</span></div>`;
+  return `<div class="nav">${it(P.key, 'Ключи', 1)}${it(P.history, 'Журнал')}${it(P.shield, 'Защита')}</div>`;
+};
+const wrap = (inner, cls = '') => `<div class="phone ${cls}">${status()}<div class="scr">${inner}</div><div class="gesture"></div></div>`;
+
+function ring() {
+  const r = 70, c = 2 * Math.PI * r;
+  let ticks = '';
+  for (let i = 0; i < 60; i++) {
+    const a = i * 6 * Math.PI / 180, r1 = 86, r2 = i % 5 === 0 ? 96 : 91;
+    ticks += `<line x1="${(100 + r1 * Math.sin(a)).toFixed(1)}" y1="${(100 - r1 * Math.cos(a)).toFixed(1)}" x2="${(100 + r2 * Math.sin(a)).toFixed(1)}" y2="${(100 - r2 * Math.cos(a)).toFixed(1)}"/>`;
+  }
+  return `<svg class="ring" viewBox="0 0 200 200" width="200" height="200"><g class="ticks">${ticks}</g><circle class="bgc" cx="100" cy="100" r="${r}"/><circle class="arc" cx="100" cy="100" r="${r}" stroke-dasharray="${(c * 3 / 7).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 100 100)"/></svg>`;
+}
+const keyCard = k => `<div class="kc"><div class="row"><div class="kav ${k.cls}">${k.id}</div><div class="col"><div class="kname">${k.name}</div><div class="kmeta">${k.meta}</div></div><div class="st ${k.due ? 'due' : ''}">${k.st}</div></div>${track(k)}<div class="kfoot"><span>${k.line}</span><span class="copy">${ic(P.lock, 13)}копия</span></div></div>`;
+const keyRow = k => `<div class="kr"><div class="kav ${k.cls}">${k.id}</div><div class="col"><div class="kname">${k.name}</div><div class="kmeta">${k.meta}</div>${track(k)}</div><div class="st ${k.due ? 'due' : ''}">${k.st}</div></div>`;
+const tile = k => `<div class="tile ${k.due ? 'due' : ''}"><div class="tt"><div class="kav ${k.cls}">${k.id}</div><div class="st ${k.due ? 'due' : ''}">${k.st}</div></div><div class="tname">${k.name}</div><div class="kmeta">${k.meta}</div>${track(k)}</div>`;
+const extras = cmd => `<div class="cmd">rk@rog:~$ <b>${cmd}</b></div><div class="hudline"><span>TEE · <b>OK</b></span><span>21.11.2026</span><span>14:32:07</span></div>`;
+
+function home(v) {
+  let b = extras('rk status');
+  const today = `<div class="card today"><div class="cap">Сегодня</div><div class="big">1 проверка</div><div class="muted">Ключ A · по памяти, около минуты</div><div class="btn">Начать</div></div>`;
+  const add = `<div class="add">${ic(P.add, 20)}Добавить ключ</div>`;
+  if (v.home === 'hero') {
+    b += `<div class="hero">${ring()}<div class="hc"><div class="hn">1</div><div class="hl">проверка<br>сегодня</div></div></div>
+      <div class="stats3"><div><b>9</b><span>дней подряд</span></div><div><b>0</b><span>подсмотров</span></div><div><b>2</b><span>ключа</span></div></div>
+      <div class="btn">Начать проверку</div><div class="sect">Мои ключи</div><div class="klist">${KEYS.map(keyRow).join('')}</div>${add}`;
+  } else {
+    b += today + '<div class="sect">Мои ключи</div>';
+    if (v.home === 'cards') b += KEYS.map(keyCard).join('') + add;
+    if (v.home === 'list') b += `<div class="klist">${KEYS.map(keyRow).join('')}</div>${add}`;
+    if (v.home === 'tiles') b += `<div class="tiles">${KEYS.map(tile).join('')}<div class="tile addt">${ic(P.add, 30)}<span>Добавить</span></div></div>`;
+  }
+  return wrap(`${appbar('Ключи', 'суббота, 21 ноября')}<div class="body">${b}</div><div class="fab">${ic(P.add)}Ключ</div>${nav()}`, 'home');
+}
+
+function kb() {
+  const row = s => [...s].map(c => `<div class="k">${c}</div>`).join('');
+  return `<div class="kb"><div class="kbcap">${ic(P.shield, 11)}Клавиатура RememberKey — системная ввод не видит</div><div class="r">${row('йцукенгшщзх')}</div><div class="r">${row('фывапролджэ')}</div><div class="r"><div class="k fn">${ic(P.shift, 18)}</div>${row('ячсмитьбю')}<div class="k fn">${ic(P.bksp, 20)}</div></div><div class="r"><div class="k fn">?123</div><div class="k fn">EN</div><div class="k sp">Русский</div><div class="k fn go">${ic(P.check, 20)}</div></div></div>`;
+}
+function check() {
+  return wrap(`${appbar('Проверка · Ключ A', '', true)}<div class="body">${extras('rk check A')}
+    <div><div class="prompt">Введите ключ по памяти</div><div class="hint">6 слов · попытка 1</div></div>
+    <div class="field">••••• ••••••<span class="caret"></span><span class="eye">${ic(P.eye, 22)}</span></div>
+    <div class="typed">Набрано: 2 слова из 6</div></div>
+    <div class="pad"><div class="btn">Проверить</div></div>${kb()}`);
+}
+function peek() {
+  const lvl = (n, t, d, body) => `<div class="card lvl"><div class="lh"><span class="lv">${n}</span><div class="col"><div class="lt">${t}</div><div class="ld">${d}</div></div></div>${body}</div>`;
+  return wrap(`${appbar('Подсмотр · Ключ A', '', true, '<div class="timer">0:54</div>')}<div class="body">${extras('rk peek A --pin --finger')}
+    <div class="note">${ic(P.eye, 18)}<span>Записано в журнал, 14:32. Экран закроется сам через минуту.</span></div>
+    ${lvl(1, 'Где ошибка', 'Красным — неверные слова в вашем вводе', '<div class="phrase">якорь сирень <span class="bad">трамвай</span> туман пряник витраж</div>')}
+    ${lvl(2, 'Подсказать часть', 'Нажмите на скрытое слово', '<div class="phrase"><span class="hid">•••</span> <span class="hid">•••</span> <span class="op">олово</span> <span class="hid">•••</span> <span class="hid">•••</span> <span class="hid">•••</span></div>')}
+    ${lvl(3, 'Показать целиком', 'Видно, пока держите кнопку', `<div class="hold">${ic(P.eye, 20)}Удерживайте, чтобы видеть</div>`)}
+    </div><div class="pad"><div class="btn">Закрыть и ввести по памяти</div></div>`);
+}
+
+const LAYOUT = { cards: 'карточки', list: 'список', tiles: 'плитки', hero: 'кольцо прогресса' };
+const main = document.getElementById('main');
+main.innerHTML = V.map(v => `
+  <section class="var v${v.n}" id="v${v.n}">
+    <div class="vh"><div class="vnum">${String(v.n).padStart(2, '0')}</div><div>
+      <h2 data-n="${v.n}. ">${v.name}<span class="tag ${v.light ? 'light' : ''}">${v.light ? 'светлая' : 'тёмная'}</span></h2>
+      <p>${v.d}</p>
+      <div class="meta"><span class="sw">${v.sw.map(c => `<i style="background:${c}" title="${c}"></i>`).join('')}</span><span>Шрифты: ${v.fonts}</span><span>Главная: ${LAYOUT[v.home]}</span></div>
+    </div></div>
+    <div class="phones">
+      <figure>${home(v)}<figcaption>Главная</figcaption></figure>
+      <figure>${check(v)}<figcaption>Проверка по памяти</figcaption></figure>
+      <figure>${peek(v)}<figcaption>Подсмотр</figcaption></figure>
+    </div>
+  </section>`).join('');
+document.getElementById('jump').innerHTML = V.map(v => `<a href="#v${v.n}">${v.n} · ${v.name}</a>`).join('');
+
+const zoom = document.getElementById('zoom'), compact = document.getElementById('compact');
+const applyZoom = () => document.querySelectorAll('.phones').forEach(el => el.style.setProperty('--z', zoom.value));
+zoom.addEventListener('change', () => { applyZoom(); try { localStorage.setItem('rk-styles-zoom', zoom.value); } catch (e) {} });
+compact.addEventListener('change', () => { document.body.classList.toggle('compact', compact.checked); try { localStorage.setItem('rk-styles-compact', compact.checked ? '1' : ''); } catch (e) {} });
+try {
+  const z = localStorage.getItem('rk-styles-zoom'); if (z) zoom.value = z;
+  if (localStorage.getItem('rk-styles-compact')) { compact.checked = true; document.body.classList.add('compact'); }
+} catch (e) {}
+applyZoom();
+</script>
+</body>
+</html>

@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RememberKey — прототип</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<!--
+  Кликабельный прототип RememberKey. 1 px = 1 dp, экран 412 × 915 — как у ASUS ROG Phone 9 Pro.
+  Ключи и PIN в прототипе — демонстрационные. В приложении проверка идёт по хешу,
+  а копия расшифровывается только после PIN приложения и отпечатка.
+-->
+<style>
+/* Оформление «Терминал» (вариант 3 из styles.html): зелёный моноширинный текст на чёрном, пунктирные рамки, [ кнопки ] */
+:root {
+  --page: #010201; --bg: #040704; --panel: #061006; --panel2: #0a160b; --panel3: #163019; --line: #1d4021; --dash: #2a6b30;
+  --text: #c6f8c2; --text2: #86d982; --text3: #4d8a4a;
+  --acc: #3dff6e; --accS: #0d2a12; --amber: #ffcf3d; --amberS: #2a230a; --red: #ff5f5f; --redS: #2a0d0d;
+  --blue: #5fd7ff; --blueS: #08222a;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 var(--mono); }
+.top { position: sticky; top: 0; z-index: 10; display: flex; gap: 16px; align-items: center; padding: 12px 20px; background: #000; border-bottom: 1px dashed var(--dash); }
+.top h1 { font-size: 16px; margin: 0; color: var(--acc); }
+.top h1::before { content: "$ "; color: var(--text3); }
+.top .sp { flex: 1; }
+.top label { font-size: 13px; color: var(--text2); display: flex; gap: 8px; align-items: center; }
+.top select { background: #000; color: var(--text); border: 1px solid var(--dash); border-radius: 0; padding: 4px 6px; font: 13px var(--mono); }
+.proto { display: flex; gap: 32px; padding: 20px; align-items: flex-start; flex-wrap: wrap; }
+.stage { zoom: var(--z, 0.9); }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- телефон ---------- */
+.phone { box-sizing: content-box; width: 412px; height: 915px; border-radius: 36px; overflow: hidden; border: 10px solid #050506; background: var(--bg); display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 50px #000, 0 0 0 1px #1a2a1b, 0 0 40px rgba(61,255,110,.06); user-select: none; }
+.phone::after { content: ""; position: absolute; inset: 0; z-index: 45; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px); }
+.status { height: 32px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 13px; color: var(--text2); }
+.status .si { display: flex; gap: 6px; align-items: center; }
+.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.gesture { height: 20px; flex: none; display: flex; justify-content: center; align-items: center; }
+.gesture::after { content: ""; width: 108px; height: 4px; background: var(--text3); }
+#ovl { position: absolute; inset: 0; pointer-events: none; z-index: 30; }
+#ovl .ovl { pointer-events: auto; }
+
+.scr { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.appbar { height: 56px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px; }
+.appbar .ttl { flex: 1; min-width: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar .ttl::before { content: "~/"; color: var(--text3); font-weight: 400; }
+.appbar .ttl.pl { padding-left: 16px; }
+.appbar .ttl .sub { font-size: 12px; font-weight: 400; color: var(--text3); margin-top: 1px; }
+.appbar .ttl .sub::before { content: "# "; }
+.ib { width: 48px; height: 48px; flex: none; display: grid; place-items: center; cursor: pointer; color: var(--text2); }
+.ib:hover { background: var(--accS); color: var(--acc); }
+.cmd { flex: none; padding: 0 16px 8px; font-size: 13px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmd b { color: var(--acc); font-weight: 500; }
+.cmd::after { content: "_"; color: var(--acc); animation: blink 1s steps(1) infinite; }
+.body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: none; }
+.body::-webkit-scrollbar { display: none; }
+.body > * { flex-shrink: 0; }
+.body.center { align-items: center; justify-content: center; gap: 14px; }
+.pad { flex: none; padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+.row { display: flex; align-items: center; min-width: 0; }
+.col { display: flex; flex-direction: column; min-width: 0; }
+.w1 { flex: 1 1 0; min-width: 0; } .w100 { width: 100%; }
+.g2 { gap: 2px; } .g4 { gap: 4px; } .g8 { gap: 8px; } .g10 { gap: 10px; } .g12 { gap: 12px; }
+.sb { justify-content: space-between; } .ac { align-items: center; }
+.t11 { font-size: 11px; } .t12 { font-size: 12px; } .t13 { font-size: 13px; } .t14 { font-size: 13.5px; } .t15 { font-size: 14.5px; } .t16 { font-size: 15.5px; }
+.t17 { font-size: 16.5px; } .t18 { font-size: 17px; } .t20 { font-size: 19px; } .t22 { font-size: 21px; } .t24 { font-size: 22px; } .t26 { font-size: 24px; } .t28 { font-size: 26px; }
+.b { font-weight: 700; } .xb { font-weight: 800; } .b5 { font-weight: 500; }
+.c2 { color: var(--text2); } .c3 { color: var(--text3); } .red { color: var(--red); } .amber { color: var(--amber); } .acc { color: var(--acc); }
+.tc { text-align: center; } .dim { opacity: .45; }
+
+/* [ кнопки ] */
+.btn { height: 50px; width: 100%; border: 1px dashed var(--dash); border-radius: 0; font: 500 15px var(--mono); text-transform: uppercase; letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text2); background: transparent; flex: none; }
+.btn::before { content: "[ "; } .btn::after { content: " ]"; }
+.btn:hover { background: var(--accS); }
+.btn.pri { color: var(--acc); border: 1px solid var(--acc); }
+.btn.pri:hover { background: var(--acc); color: #000; }
+.btn.pri:disabled { color: var(--text3); border: 1px dashed var(--line); background: transparent; cursor: default; }
+.btn.warn { color: var(--amber); border: 1px solid var(--amber); }
+.btn.warn:hover { background: var(--amber); color: #000; }
+.btn.red { color: var(--red); border: 1px solid var(--red); }
+.btn.red:hover { background: var(--red); color: #000; }
+.btn.sm { height: 40px; font-size: 13px; }
+.link { color: var(--acc); cursor: pointer; font-size: 13.5px; align-self: flex-start; padding: 4px 0; }
+.link::before { content: "> "; }
+.link:hover { text-decoration: underline; }
+
+.card { background: transparent; border: 1px dashed var(--dash); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.card.due { border-color: #6b5a1f; box-shadow: inset 3px 0 0 var(--amber); }
+.card.alert { border-color: var(--red); background: var(--redS); }
+.card.alert .btn { margin-top: 2px; }
+.cap { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: 12px; color: var(--amber); }
+.sect { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin: 8px 2px -2px; }
+.sect::before { content: "# "; }
+.chip0 { display: inline-block; font-size: 11px; color: var(--amber); border: 1px solid var(--amber); padding: 2px 6px; }
+
+/* карточка ключа */
+.kc { background: transparent; border: 1px dashed var(--dash); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
+.kc:hover { background: #071407; border-color: var(--acc); }
+.kav { display: flex; align-items: center; font-weight: 800; font-size: 17px; color: var(--acc); flex: none; }
+.kav::before { content: "["; color: var(--text3); } .kav::after { content: "]"; color: var(--text3); }
+.kav.f-symbols { color: var(--blue); }
+.kav.big { font-size: 26px; }
+.st { font-size: 12px; color: var(--text2); border: 1px solid currentColor; padding: 3px 8px; white-space: nowrap; }
+.st.amber { color: #000; background: var(--amber); border-color: var(--amber); } .st.blue { color: var(--blue); }
+.track { display: flex; gap: 3px; width: 100%; }
+.track i { flex: 1; height: 10px; background: #12301a; }
+.track i.done { background: var(--acc); }
+.track i.now { background: var(--amber); animation: blink 1s steps(1) infinite; }
+.track i.next { background: transparent; box-shadow: inset 0 0 0 1px var(--acc); }
+.tlab { display: flex; gap: 3px; width: 100%; margin-top: -4px; }
+.tlab span { flex: 1; text-align: center; font-size: 11px; color: var(--text3); }
+.cp { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.cp.ok { color: var(--acc); } .cp.bad { color: var(--red); }
+.addcard { border: 1px dashed var(--dash); height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text2); cursor: pointer; }
+.addcard:hover { border-color: var(--acc); color: var(--acc); }
+
+/* нижнее меню */
+.nav { height: 60px; flex: none; display: flex; background: var(--bg); border-top: 1px dashed var(--dash); }
+.nav .it { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text3); cursor: pointer; }
+.nav .pill { display: none; }
+.nav .lb::before { content: "["; } .nav .lb::after { content: "]"; }
+.nav .it:hover { color: var(--text); }
+.nav .it.on .lb { background: var(--acc); color: #000; padding: 2px 6px; }
+
+/* поле ввода ключа */
+.field { position: relative; background: transparent; border: 1px dashed var(--acc); padding: 14px 54px 14px 14px; min-height: 100px; font: 500 20px/1.5 var(--mono); letter-spacing: .5px; word-break: break-word; white-space: pre-wrap; }
+.field::before { content: "> "; color: var(--acc); }
+.field .ph { color: var(--text3); font: 400 15px/1.5 var(--mono); }
+.field .g { margin-right: .55em; }
+.field .eye { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--text2); cursor: pointer; }
+.field .eye:hover { color: var(--acc); background: var(--accS); }
+.caret { display: inline-block; width: 11px; height: 22px; background: var(--acc); vertical-align: -4px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+.err { display: flex; gap: 8px; align-items: flex-start; color: var(--red); font-size: 13.5px; }
+.err svg { flex: none; margin-top: 1px; }
+
+/* клавиатура приложения */
+.kb { flex: none; background: #020402; padding: 6px 3px 6px; display: flex; flex-direction: column; gap: 7px; border-top: 1px dashed var(--line); }
+.kbcap { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; color: var(--text3); height: 14px; }
+.kb .r { display: flex; gap: 5px; justify-content: center; padding: 0 2px; }
+.kb .k { flex: 1 1 0; min-width: 0; max-width: 38px; height: 46px; border: 1px solid var(--line); display: grid; place-items: center; font: 400 18px var(--mono); color: var(--text2); cursor: pointer; }
+.kb .k:hover { background: var(--accS); color: var(--acc); border-color: var(--dash); }
+.kb .k.fn { flex: 1.5 1 0; max-width: none; background: var(--accS); font-size: 13px; font-weight: 700; }
+.kb .k.fn.on { background: var(--acc); color: #000; }
+.kb .k.space { flex: 5 1 0; max-width: none; font-size: 12px; color: var(--text3); }
+.kb .k.space.dim { cursor: default; opacity: .55; }
+.kb .k.go { background: var(--acc); color: #000; border-color: var(--acc); }
+
+/* PIN */
+.dots { display: flex; gap: 14px; margin: 6px 0; }
+.dots i { width: 16px; height: 16px; box-shadow: inset 0 0 0 1px var(--text3); }
+.dots i.on { background: var(--acc); box-shadow: none; }
+.dots.bad i { box-shadow: inset 0 0 0 1px var(--red); animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.pp { flex: none; display: grid; grid-template-columns: repeat(3, 84px); justify-content: center; gap: 12px 26px; padding: 6px 0 22px; }
+.pp .pk { width: 84px; height: 72px; border: 1px solid var(--line); display: grid; place-items: center; font: 400 28px var(--mono); color: var(--text); cursor: pointer; }
+.pp .pk:hover { background: var(--accS); border-color: var(--acc); color: var(--acc); }
+.pp .pk.fn { border-color: transparent; color: var(--text2); }
+.pp .pk.blank { visibility: hidden; }
+
+/* системное окно отпечатка */
+.ovl { position: absolute; inset: 0; background: rgba(0,0,0,.75); display: flex; flex-direction: column; justify-content: flex-end; animation: fade .15s; }
+@keyframes fade { from { opacity: 0; } }
+.sheet { background: #050b05; border-top: 1px solid var(--acc); padding: 18px 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; animation: up .2s; }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } }
+.fp { width: 80px; height: 80px; border: 1px solid var(--acc); display: grid; place-items: center; color: var(--acc); cursor: pointer; margin: 18px 0 6px; animation: pulse 1.6s infinite; }
+.fp.ok { background: var(--acc); color: #000; animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(61,255,110,.4); } 70% { box-shadow: 0 0 0 14px rgba(61,255,110,0); } }
+.tbtn { color: var(--acc); font-size: 13.5px; cursor: pointer; padding: 10px 4px; align-self: flex-end; }
+.tbtn::before { content: "[ "; } .tbtn::after { content: " ]"; }
+
+/* части ключа (символы) */
+.chunks { display: grid; gap: 8px; grid-template-columns: repeat(2, 1fr); width: 100%; }
+.chunks.cols3 { grid-template-columns: repeat(3, 1fr); }
+.ch { position: relative; border: 1px dashed var(--dash); padding: 10px 10px 10px 30px; font: 500 17px/1.3 var(--mono); min-height: 48px; display: flex; align-items: center; word-break: break-all; }
+.ch .n { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font: 400 12px var(--mono); color: var(--text3); }
+.ch .mk { position: absolute; right: 6px; top: 5px; display: flex; }
+.ch.good { border: 1px solid var(--dash); } .ch.good .mk { color: var(--acc); }
+.ch.bad { border: 1px solid var(--red); } .ch.bad .mk { color: var(--red); }
+.ch .fix { color: var(--acc); font-size: 14px; }
+.ch.slot { cursor: pointer; color: var(--text3); letter-spacing: 2px; }
+.ch.slot:hover { background: var(--accS); }
+.ch.slot.open { color: var(--amber); cursor: default; letter-spacing: .5px; border: 1px solid var(--amber); }
+.ch.slot.hintbad { border: 1px dashed var(--red); }
+.chunks.big .ch { font-size: 20px; min-height: 58px; }
+/* фраза — одной строкой, без блоков */
+.phrase { width: 100%; border-left: 2px solid var(--acc); padding: 10px 14px; font: 500 18px/1.7 var(--mono); word-break: break-word; background: rgba(61,255,110,.03); }
+.phrase.big { font-size: 21px; line-height: 1.6; padding: 14px 16px; }
+.phrase .bad { color: var(--red); text-decoration: line-through; text-decoration-thickness: 2px; }
+.phrase .fix { color: var(--acc); }
+.phrase .op { color: var(--amber); }
+.phrase .hid { color: var(--text3); cursor: pointer; padding: 0 2px; letter-spacing: 1px; }
+.phrase .hid:hover { background: var(--accS); color: var(--text2); }
+.phrase .hid.hint { box-shadow: inset 0 -2px 0 var(--red); }
+.lvl .lh { display: flex; gap: 12px; align-items: flex-start; }
+.lv { width: 26px; height: 26px; border: 1px solid var(--amber); color: var(--amber); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; margin-top: 1px; }
+.fullbox { border: 1px dashed var(--dash); min-height: 58px; padding: 12px; font: 500 17px/1.4 var(--mono); display: flex; align-items: center; justify-content: center; text-align: center; }
+.fullbox .shown { display: none; color: var(--amber); }
+.fullbox.on .shown { display: block; } .fullbox.on .hidden { display: none; }
+.fullbox .hidden { color: var(--text3); letter-spacing: 3px; }
+.hold { height: 46px; border: 1px solid var(--amber); color: var(--amber); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; cursor: pointer; touch-action: none; text-transform: uppercase; font-size: 13.5px; }
+.hold.on { background: var(--amber); color: #000; }
+.timer { font: 700 14px var(--mono); color: var(--amber); border: 1px solid var(--amber); padding: 4px 8px; margin-right: 8px; }
+.note { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text2); border: 1px dashed var(--dash); padding: 10px 12px; text-align: left; width: 100%; }
+.note.amber { border-color: var(--amber); color: var(--amber); }
+.note.red { border-color: var(--red); color: #ffb0b0; background: var(--redS); }
+.note svg { flex: none; }
+.steps { display: flex; gap: 4px; }
+.steps i { flex: 1; height: 8px; background: #12301a; }
+.steps i.done { background: var(--acc); } .steps i.now { background: var(--blue); animation: blink 1s steps(1) infinite; }
+.tip { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text2); }
+.tip svg { flex: none; color: var(--amber); }
+
+/* история ключа */
+.tl { display: flex; gap: 12px; align-items: flex-start; position: relative; padding-bottom: 14px; }
+.tl:not(:last-child)::before { content: ""; position: absolute; left: 11px; top: 26px; bottom: 2px; border-left: 1px dashed var(--dash); }
+.tl .dot { width: 24px; height: 24px; flex: none; display: grid; place-items: center; border: 1px solid var(--acc); color: var(--acc); background: var(--bg); }
+.tl.peek .dot { border-color: var(--amber); color: var(--amber); } .tl.fail .dot { border-color: var(--red); color: var(--red); }
+.tl.learn .dot { border-color: var(--blue); color: var(--blue); }
+.tl.next .dot { border-color: var(--amber); animation: blink 1.2s steps(1) infinite; }
+.tl.fut .dot { border: 1px dashed var(--line); }
+.tl.fut .t15 { color: var(--text3); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stats div { border: 1px dashed var(--dash); padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+.stats b { font-size: 22px; } .stats span { font-size: 11.5px; color: var(--text3); }
+
+/* списки */
+.lst { border: 1px dashed var(--dash); }
+.li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px dashed var(--line); }
+.li:first-child { border-top: 0; }
+.li.click { cursor: pointer; } .li.click:hover { background: var(--accS); }
+.ico { width: 32px; height: 32px; display: grid; place-items: center; flex: none; border: 1px solid currentColor; }
+.ico.ok, .ico.restore { color: var(--acc); }
+.ico.fail, .ico.bad, .ico.pin, .ico.lost { color: var(--red); }
+.ico.peek, .ico.warn { color: var(--amber); }
+.ico.learn, .ico.add, .ico.diag { color: var(--blue); }
+.ico.pend { color: var(--text3); border-style: dashed; }
+.chips { display: flex; gap: 8px; }
+.chip { padding: 5px 10px; border: 1px solid var(--line); color: var(--text2); font-size: 13px; cursor: pointer; }
+.chip:hover { border-color: var(--acc); }
+.chip.on { background: var(--acc); color: #000; border-color: var(--acc); }
+.dayh { font-size: 12.5px; color: var(--text3); margin: 6px 2px -4px; }
+.dayh::before { content: "-- "; } .dayh::after { content: " --"; }
+.spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--acc); animation: rot .8s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+.bigic { width: 84px; height: 84px; display: grid; place-items: center; flex: none; border: 1px solid currentColor; }
+.bigic.ok { color: var(--acc); box-shadow: 0 0 24px rgba(61,255,110,.15); } .bigic.bad { color: var(--red); } .bigic.blue { color: var(--blue); }
+
+/* первый запуск, добавление */
+.logo { width: 84px; height: 84px; border: 1px solid var(--acc); display: grid; place-items: center; color: var(--acc); box-shadow: 0 0 30px rgba(61,255,110,.18); }
+.pr { display: flex; gap: 14px; align-items: flex-start; }
+.lbl { font-size: 12px; color: var(--text3); margin: 6px 2px -4px; }
+.lbl::before { content: "# "; }
+.tin { height: 48px; background: transparent; border: 1px dashed var(--dash); outline: 0; color: var(--text); font: 15px var(--mono); padding: 0 14px; user-select: text; }
+.tin:focus { border: 1px solid var(--acc); }
+.opt { display: flex; gap: 12px; align-items: center; border: 1px dashed var(--dash); padding: 12px 14px; cursor: pointer; }
+.opt:hover { background: #071407; }
+.opt .radio { width: 18px; height: 18px; box-shadow: inset 0 0 0 1px var(--text3); flex: none; }
+.opt.on { border: 1px solid var(--acc); } .opt.on .radio { box-shadow: inset 0 0 0 1px var(--acc), inset 0 0 0 4px var(--bg), inset 0 0 0 9px var(--acc); }
+.opt .ex { font: 13px var(--mono); color: var(--text3); }
+
+/* экран блокировки */
+.lock { background: radial-gradient(90% 60% at 50% 20%, #08200c, #020402 70%); align-items: center; padding: 40px 16px 0; }
+.lk-time { font-size: 80px; font-weight: 300; line-height: 1; margin-top: 36px; color: var(--acc); text-shadow: 0 0 18px rgba(61,255,110,.45); }
+.lk-date { color: var(--text2); margin-top: 10px; }
+.notif { margin-top: 56px; width: 100%; background: rgba(4,10,4,.9); border: 1px dashed var(--acc); padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.notif:hover { background: var(--accS); }
+.nic { width: 22px; height: 22px; background: var(--acc); color: #000; display: grid; place-items: center; }
+.lk-fp { color: var(--text3); margin-bottom: 12px; }
+
+.toast { position: absolute; left: 50%; top: 100px; transform: translateX(-50%); background: #000; color: var(--acc); border: 1px solid var(--acc); padding: 8px 14px; font-size: 13.5px; z-index: 40; white-space: nowrap; }
+.toast::before { content: "> "; }
+
+/* ---------- панель справа ---------- */
+.panel { width: 400px; display: flex; flex-direction: column; gap: 14px; }
+.pc { background: #020502; border: 1px dashed var(--dash); padding: 14px 16px; }
+.pc h3 { margin: 0 0 10px; font-size: 14px; color: var(--acc); }
+.pc h3::before { content: "# "; color: var(--text3); }
+.pc ul { margin: 0; padding-left: 18px; color: var(--text2); font-size: 13px; line-height: 1.5; }
+.pc li + li { margin-top: 4px; }
+.pc p { margin: 8px 0 0; color: var(--text2); font-size: 13px; line-height: 1.5; }
+.pbtns { display: flex; flex-wrap: wrap; gap: 6px; }
+.pbtns button { background: transparent; color: var(--text2); border: 1px solid var(--line); border-radius: 0; padding: 6px 9px; font: 12.5px var(--mono); cursor: pointer; }
+.pbtns button:hover { border-color: var(--acc); color: var(--acc); }
+.pbtns button.go { color: var(--acc); border-color: var(--acc); font-weight: 700; }
+.pbtns button.go:hover { background: var(--acc); color: #000; }
+.pbtns button:disabled { opacity: .35; cursor: default; }
+.pnow { margin-top: 10px; font-size: 12.5px; color: var(--text3); }
+.pnow b { color: var(--text2); font-weight: 500; }
+.demo { margin-top: 10px; font: 13px/1.45 var(--mono); color: var(--text); border-collapse: collapse; }
+.demo td { padding: 3px 10px 3px 0; vertical-align: top; }
+.demo td:first-child { color: var(--text3); white-space: nowrap; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text2); cursor: pointer; }
+.chk input { margin-top: 2px; accent-color: #3dff6e; }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>RememberKey — прототип</h1>
+  <span class="c3 t13">ASUS ROG Phone 9 Pro · 412 × 915 dp</span>
+  <div class="sp"></div>
+  <label>Масштаб
+    <select id="zoom">
+      <option value="1">100%</option><option value="0.9" selected>90%</option><option value="0.8">80%</option><option value="0.7">70%</option>
+    </select>
+  </label>
+</div>
+
+<div class="proto">
+  <div class="stage" id="stage">
+    <div class="phone" id="phone">
+      <div class="status"><span id="sbtime">14:32</span><span class="si">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5" y="6" width="3" height="8" rx="1"/><rect x="10" y="3" width="3" height="11" rx="1"/><rect x="15" y="0" width="3" height="14" rx="1"/></svg>
+        <svg width="26" height="14" viewBox="0 0 26 14" fill="currentColor"><rect x=".7" y="1.7" width="21" height="10.6" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="3.5" width="14" height="7" rx="1"/><rect x="23" y="5" width="2" height="4" rx="1"/></svg>
+        78%</span></div>
+      <div class="screen" id="screen"></div>
+      <div class="gesture"></div>
+      <div id="ovl"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="pc">
+      <h3>Экраны</h3>
+      <div class="pbtns">
+        <button onclick="J.home()">Главная</button>
+        <button onclick="J.check()">Проверка ключа A</button>
+        <button onclick="J.practice()">Тренировка ключа B</button>
+        <button onclick="J.fail()">Не совпало</button>
+        <button onclick="J.pin()">PIN</button>
+        <button onclick="J.peek()">Подсмотр</button>
+        <button onclick="J.key()">Ключ A</button>
+        <button onclick="J.keyB()">Ключ B — был подсмотр</button>
+        <button onclick="J.add()">Добавить ключ</button>
+        <button onclick="J.learn()">Заучивание</button>
+        <button onclick="J.journal()">Журнал</button>
+        <button onclick="J.security()">Защита</button>
+        <button onclick="J.diag()">Проверка телефона</button>
+        <button onclick="J.notif()">Уведомление</button>
+        <button onclick="J.lost()">Копии уничтожены</button>
+        <button onclick="J.first()">Первый запуск</button>
+      </div>
+      <div class="pnow" id="pnow"></div>
+    </div>
+
+    <div class="pc">
+      <h3>Ввод</h3>
+      <div class="pbtns">
+        <button class="go" id="fillOk" onclick="fill(true)">Ввести верно</button>
+        <button id="fillBad" onclick="fill(false)">Ввести с ошибкой</button>
+      </div>
+      <p>На экранах ввода можно печатать и с клавиатуры компьютера. Отпечаток — щелчок по значку или Enter.</p>
+      <table class="demo">
+        <tr><td>Ключ A</td><td>якорь сирень олово туман пряник витраж</td></tr>
+        <tr><td>Ключ B</td><td>Tq7#mV2!pR9x</td></tr>
+        <tr><td>Новый</td><td>гроза лимон кедр бархат шлюз маяк<br>Wb4$kZ8&amp;nL3q</td></tr>
+        <tr><td>PIN</td><td>123456</td></tr>
+      </table>
+    </div>
+
+    <div class="pc">
+      <h3>Сценарий</h3>
+      <label class="chk"><input type="checkbox" id="lostChk" onchange="J.toggleLost(this.checked)"> Копии уничтожены: в настройках Android добавили новый отпечаток</label>
+      <div class="pbtns" style="margin-top:10px"><button onclick="J.reset()">Сбросить прототип</button></div>
+    </div>
+
+    <div class="pc">
+      <h3>Правила — предложение</h3>
+      <ul>
+        <li>Проверка идёт по хешу: PIN и отпечаток не нужны, ключ не расшифровывается.</li>
+        <li>Верно с первой попытки — следующий интервал: 1 → 3 → 7 → 16 → 35 → 60 дней, дальше всегда каждые 60.</li>
+        <li>Верно не с первой попытки — тот же интервал ещё раз.</li>
+        <li>Раньше срока — тренировка: ключ нужно ввести верно 3 раза, ошибка счёт не сбрасывает. Расписание не меняется.</li>
+        <li>Подсмотр: PIN приложения, потом отпечаток. Три уровня — где ошибка → одна часть → целиком, пока держите кнопку. Экран закрывается сам через 60 секунд.</li>
+        <li>После подсмотра — сразу ввод по памяти, проверка завтра, интервалы заново. Открыть копию и ничего не посмотреть — не считается.</li>
+        <li>Неверный PIN: после третьей ошибки пауза 30 с, дальше 1, 5, 15 минут. Ничего не стирается.</li>
+        <li>Новый ключ: ввод дважды → отпечаток (шифруем копию) → заучивание, 3 раза подряд по памяти.</li>
+        <li>Журнал нельзя очистить.</li>
+      </ul>
+    </div>
+
+    <div class="pc">
+      <h3>В макете не видно</h3>
+      <ul>
+        <li>Скриншоты, запись экрана и превью в списке приложений запрещены.</li>
+        <li>Ключ не попадает в буфер обмена и в уведомления.</li>
+        <li>У приложения нет доступа в интернет; данные не уходят в резервную копию Android.</li>
+        <li>Расшифрованный ключ стирается из памяти сразу после показа.</li>
+        <li>Окно отпечатка в приложении системное (BiometricPrompt), здесь нарисовано похожее.</li>
+      </ul>
+    </div>
+
+    <div class="pc">
+      <h3>Форматы ключей</h3>
+      <p style="margin:0">Два формата: фраза (A) и символы (B). Фраза везде показывается строкой, символы — блоками по 4. В «Защите» — результаты диагностики вашего телефона от 21 ноября.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ---------- даты и слова ----------
+const TODAY = new Date(2026, 10, 21);
+const INTERVALS = [1, 3, 7, 16, 35, 60];
+const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+const WDAYS = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+const ORD = ['', 'первой', 'второй', 'третьей', 'четвёртой', 'пятой', 'шестой'];
+const day = n => new Date(2026, 10, n);
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const diffDays = d => Math.round((d - TODAY) / 86400000);
+const fmtDate = d => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+function plural(n, one, few, many) { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; }
+const daysWord = n => `${n} ${plural(n, 'день', 'дня', 'дней')}`;
+function rel(d) { const n = diffDays(d); if (n === 0) return 'сегодня'; if (n === 1) return 'завтра'; if (n === 2) return 'послезавтра'; if (n < 0) return `просрочено на ${daysWord(-n)}`; return `через ${daysWord(n)}`; }
+function dayTitle(d) { const n = diffDays(d); return n === 0 ? 'Сегодня' : n === -1 ? 'Вчера' : fmtDate(d); }
+const fromAttempt = n => (n === 2 ? 'со второй' : `с ${ORD[n] || n + '-й'}`) + ' попытки';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const $ = s => document.querySelector(s);
+
+// ---------- значки ----------
+const P = {
+  back: 'M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z',
+  close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+  check: 'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+  add: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
+  lock: 'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z',
+  eye: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
+  eyeOff: 'M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z',
+  bksp: 'M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z',
+  key: 'M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z',
+  shield: 'M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z',
+  history: 'M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z',
+  warn: 'M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z',
+  bulb: 'M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z',
+  shift: 'M12 4 3.5 13H8v7h8v-7h4.5z',
+  hash: 'M20 10V8h-4V4h-2v4h-4V4H8v4H4v2h4v4H4v2h4v4h2v-4h4v4h2v-4h4v-2h-4v-4h4zm-6 4h-4v-4h4v4z',
+  chevron: 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
+};
+const ic = (p, s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor"><path d="${p}"/></svg>`;
+const FP = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5.6 6.2a9 9 0 0 1 12.8 0"/><path d="M4.5 15.5c.3-1 .5-1.9.5-3a7 7 0 0 1 14 0c0 .9-.1 1.8-.2 2.5"/><path d="M7.8 19.5c.7-1.9 1-4.2 1-6.9a3.2 3.2 0 0 1 6.4 0c0 3-.4 5.6-1.3 7.8"/><path d="M12 12.6c0 3.2-.4 6-1.3 8.4"/><path d="M17.4 18.6c.2-.8.4-1.7.5-2.6"/></svg>`;
+const LOGIC = { ok: P.check, fail: P.close, peek: P.eye, pin: P.lock, learn: P.key, add: P.add, diag: P.shield, restore: P.lock, lost: P.warn };
+
+// ---------- форматы ключей ----------
+const FMT = {
+  words: { name: 'Фраза', desc: 'несколько слов через пробел', ex: 'река окно …', kb: 'ru', unit: ['слово', 'слова', 'слов'], part: ['слово', 'слова', 'слов'], ph: 'Слова через пробел' },
+  symbols: { name: 'Символы', desc: 'буквы, цифры и знаки', ex: 'k7#Q…', kb: 'en', unit: ['символ', 'символа', 'символов'], part: ['блок', 'блока', 'блоков'], ph: 'Символы без пробелов' },
+};
+const DEMO = { A: 'якорь сирень олово туман пряник витраж', B: 'Tq7#mV2!pR9x' };
+const DEMO_NEW = { words: 'гроза лимон кедр бархат шлюз маяк', symbols: 'Wb4$kZ8&nL3q' };
+function chunks(fmt, s) { if (fmt === 'words') return s.trim().split(/\s+/).filter(Boolean); const t = s.replace(/\s+/g, ''), out = []; for (let i = 0; i < t.length; i += 4) out.push(t.slice(i, i + 4)); return out; }
+function norm(fmt, s) { return fmt === 'words' ? s.trim().toLowerCase().replace(/\s+/g, ' ') : s.replace(/\s+/g, ''); }
+const same = (fmt, a, b) => norm(fmt, a) === norm(fmt, b);
+const size = (fmt, s) => fmt === 'words' ? chunks(fmt, s).length : norm(fmt, s).length;
+function sizeText(fmt, s) { const n = size(fmt, s); return `${n} ${plural(n, ...FMT[fmt].unit)}`; }
+const cols = (fmt, s) => fmt === 'words' ? 2 : chunks(fmt, s).length % 3 === 0 ? 3 : 2;
+function mutate(fmt, s) {
+  if (fmt === 'words') { const w = norm(fmt, s).split(' '); const i = Math.min(2, w.length - 1); w[i] = w[i] === 'трамвай' ? 'вокзал' : 'трамвай'; return w.join(' '); }
+  const a = [...norm(fmt, s)], i = Math.min(5, a.length - 1), was = a[i];
+  a[i] = was === was.toLowerCase() ? was.toUpperCase() : was.toLowerCase();
+  if (a[i] === was) a[i] = 'z';
+  return a.join('');
+}
+
+// ---------- состояние ----------
+let clockMin = 14 * 60 + 32;
+const clock = () => `${Math.floor(clockMin / 60)}:${String(clockMin % 60).padStart(2, '0')}`;
+function initial() {
+  return {
+    screen: 'home', params: {}, stack: [], overlay: null,
+    buf: '', show: false, kb: 'ru', kbAlpha: 'ru', shift: false, err: '', last: null, newKey: null,
+    pin: '123456', pinBuf: '', pinFails: 0, lockUntil: 0,
+    keys: [
+      { id: 'A', name: 'Ключ A', fmt: 'words', secret: DEMO.A, created: day(10), learned: true, level: 2, due: day(21), copy: true, checks: 2, first: 2, peeks: 0,
+        hist: [{ d: day(10), k: 'learn', t: 'Заучивание' }, { d: day(11), k: 'ok', t: 'Через 1 день — верно' }, { d: day(14), k: 'ok', t: 'Через 3 дня — верно' }] },
+      { id: 'B', name: 'Ключ B', fmt: 'symbols', secret: DEMO.B, created: day(18), learned: true, level: 1, due: day(23), copy: true, checks: 2, first: 1, peeks: 1,
+        hist: [{ d: day(18), k: 'learn', t: 'Заучивание' }, { d: day(19), k: 'peek', t: 'Через 1 день — не вспомнили, подсмотр 1 блока, повтор заново' }, { d: day(20), k: 'ok', t: 'Через 1 день — верно' }] },
+    ],
+    log: [
+      { d: day(20), time: '9:12', k: 'ok', title: 'Проверка · Ключ B', sub: 'Верно с первой попытки · следующая через 3 дня' },
+      { d: day(19), time: '21:44', k: 'ok', title: 'Повтор · Ключ B', sub: 'Верно по памяти после подсмотра · проверка завтра' },
+      { d: day(19), time: '21:41', k: 'peek', title: 'Подсмотр · Ключ B', sub: 'PIN и отпечаток · открыт 1 блок из 3' },
+      { d: day(19), time: '21:39', k: 'fail', title: 'Проверка · Ключ B', sub: 'Не совпало · попытка 2' },
+      { d: day(19), time: '21:38', k: 'fail', title: 'Проверка · Ключ B', sub: 'Не совпало · попытка 1' },
+      { d: day(18), time: '20:05', k: 'learn', title: 'Заучен · Ключ B', sub: '3 раза подряд по памяти · первая проверка завтра' },
+      { d: day(18), time: '19:58', k: 'add', title: 'Добавлен · Ключ B', sub: '12 символов · хеш и зашифрованная копия' },
+      { d: day(14), time: '8:50', k: 'ok', title: 'Проверка · Ключ A', sub: 'Верно с первой попытки · следующая через 7 дней' },
+      { d: day(11), time: '19:20', k: 'ok', title: 'Проверка · Ключ A', sub: 'Верно с первой попытки · следующая через 3 дня' },
+      { d: day(10), time: '22:31', k: 'learn', title: 'Заучен · Ключ A', sub: '3 раза подряд по памяти · первая проверка завтра' },
+      { d: day(10), time: '22:24', k: 'add', title: 'Добавлен · Ключ A', sub: '6 слов · хеш и зашифрованная копия' },
+      { d: day(10), time: '22:10', k: 'diag', title: 'Проверка телефона', sub: '1 замечание: устаревшее обновление безопасности' },
+    ],
+  };
+}
+let S = initial();
+const key = id => S.keys.find(k => k.id === id);
+const nextLetter = () => [...'ABCDEFGHIJ'].find(c => !key(c));
+function log(kind, k, title, sub) { clockMin++; const e = { d: TODAY, time: clock(), k: kind, title, sub }; S.log.unshift(e); return e; }
+
+// ---------- навигация ----------
+let timers = [];
+function stopTimers() { timers.forEach(t => clearInterval(t)); timers = []; }
+function inputFmt() {
+  const s = S.screen, p = S.params;
+  if (s === 'check') return key(p.id).fmt;
+  if (s === 'learn' && p.phase === 'recall') return key(p.id).fmt;
+  if ((s === 'add2' || s === 'add3') && S.newKey) return S.newKey.fmt;
+  return null;
+}
+function resetInput(f) { S.buf = ''; S.show = false; S.shift = false; S.err = ''; S.kb = FMT[f].kb; S.kbAlpha = S.kb; }
+function arrive() { S.overlay = null; S.err = ''; S.pinBuf = ''; const f = inputFmt(); if (f) resetInput(f); render(); SCR[S.screen].enter?.(S.params); }
+function go(screen, params = {}, how = 'push') {
+  stopTimers();
+  if (how === 'push') S.stack.push({ screen: S.screen, params: S.params });
+  if (how === 'root') S.stack = [];
+  S.screen = screen; S.params = params; arrive();
+}
+function goFromHome(screen, params) { stopTimers(); S.stack = [{ screen: 'home', params: {} }]; S.screen = screen; S.params = params; arrive(); }
+function back() { stopTimers(); const p = S.stack.pop(); if (p) { S.screen = p.screen; S.params = p.params; } else { S.screen = 'home'; S.params = {}; } arrive(); }
+
+function render() {
+  $('#screen').innerHTML = SCR[S.screen].view(S.params);
+  addCmd();
+  $('#ovl').innerHTML = S.overlay ? ovlView(S.overlay) : '';
+  $('#sbtime').textContent = S.screen === 'notif' ? '' : clock();
+  syncPanel();
+}
+// строка-команда над экраном, как в терминале
+function cmdFor() {
+  const s = S.screen, p = S.params, id = p.id || '';
+  if (s === 'check') return { check: `rk check ${id}`, practice: `rk practice ${id} --times 3`, relearn: `rk recall ${id}`, restore: `rk restore ${id}` }[p.mode];
+  return {
+    home: 'rk status', key: `rk show ${id}`, result: `rk check ${id}`, pin: `rk unlock ${id} --pin`, pinset: 'rk pin --set',
+    peek: `rk peek ${id} --pin --finger`, lost: `rk peek ${id}`, add1: 'rk add', add2: 'rk add --input', add3: 'rk add --confirm',
+    added: `rk add --save ${id}`, learn: `rk learn ${id}`, learned: `rk learn ${id} --done`, journal: 'rk log',
+    security: 'rk diag --summary', diag: 'rk diag --run', onboard: 'rk init',
+  }[s];
+}
+function addCmd() {
+  const c = cmdFor(); if (!c) return;
+  const html = `<div class="cmd">rk@rog:~$ <b>${esc(c)}</b></div>`;
+  const bar = $('#screen .appbar');
+  if (bar) bar.insertAdjacentHTML('afterend', html); else $('#screen .scr')?.insertAdjacentHTML('afterbegin', html);
+}
+function toast(msg) { const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; $('#phone').appendChild(el); setTimeout(() => el.remove(), 1900); }
+
+// ---------- общие части экранов ----------
+function appbar(title, o = {}) {
+  let nav = '';
+  if (o.close) nav = `<div class="ib" data-act="${o.closeAct || 'back'}">${ic(P.close)}</div>`;
+  else if (o.back !== false) nav = `<div class="ib" data-act="back">${ic(P.back)}</div>`;
+  return `<div class="appbar">${nav}<div class="ttl ${nav ? '' : 'pl'}">${title}${o.sub ? `<div class="sub">${o.sub}</div>` : ''}</div>${o.right || ''}</div>`;
+}
+function navbar(tab) {
+  const it = (id, p, label) => `<div class="it ${tab === id ? 'on' : ''}" data-act="tab" data-arg="${id}"><div class="pill">${ic(p)}</div><span class="lb">${label}</span></div>`;
+  return `<div class="nav">${it('home', P.key, 'Ключи')}${it('journal', P.history, 'Журнал')}${it('security', P.shield, 'Защита')}</div>`;
+}
+function track(k, labels = false) {
+  let h = `<i class="${k.learned ? 'done' : 'now'}"></i>`;
+  for (let i = 0; i < 6; i++) h += `<i class="${!k.learned ? '' : i < k.level ? 'done' : i === k.level ? (diffDays(k.due) <= 0 ? 'now' : 'next') : ''}"></i>`;
+  const lab = labels ? `<div class="tlab"><span>учим</span>${INTERVALS.map(x => `<span>${x}</span>`).join('')}</div>` : '';
+  return `<div class="track">${h}</div>${lab}`;
+}
+function maskView(fmt, buf, show) {
+  if (fmt === 'words') return esc(show ? buf : buf.replace(/\S/g, '•'));
+  const t = buf.replace(/\s+/g, ''), g = [];
+  for (let i = 0; i < t.length; i += 4) g.push(t.slice(i, i + 4));
+  return g.map((x, i) => `<span class="${i < g.length - 1 ? 'g' : ''}">${show ? esc(x) : '•'.repeat(x.length)}</span>`).join('');
+}
+function fieldView(fmt) {
+  const inner = S.buf ? `${maskView(fmt, S.buf, S.show)}<span class="caret"></span>` : `<span class="caret"></span><span class="ph"> ${FMT[fmt].ph}</span>`;
+  return `<div class="field">${inner}<div class="eye" data-act="eye" title="${S.show ? 'Скрыть' : 'Показать набранное'}">${ic(S.show ? P.eyeOff : P.eye, 22)}</div></div>`;
+}
+const LAYOUTS = { ru: ['йцукенгшщзх', 'фывапролджэ', 'ячсмитьбю'], en: ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'], sym: ['1234567890', '@#$%&-+()/', '*"\':;!?=_'] };
+function kbView(fmt) {
+  const cap = `<div class="kbcap">${ic(P.shield, 12)}Клавиатура RememberKey: системная ввод не видит</div>`;
+  const lay = S.kb, rows = LAYOUTS[lay], up = S.shift && lay !== 'sym';
+  const k = ch => { const c = up ? ch.toUpperCase() : ch; return `<div class="k" data-act="kb" data-arg="${esc(c)}">${esc(c)}</div>`; };
+  const row = s => [...s].map(k).join('');
+  const shift = lay === 'sym' ? '' : `<div class="k fn ${S.shift ? 'on' : ''}" data-act="shift">${ic(P.shift, 20)}</div>`;
+  const sw = lay === 'sym' ? `<div class="k fn" data-act="lay" data-arg="${S.kbAlpha}">${S.kbAlpha === 'ru' ? 'АБВ' : 'ABC'}</div>` : `<div class="k fn" data-act="lay" data-arg="sym">?123</div>`;
+  const lang = lay === 'sym' ? '' : `<div class="k fn" data-act="lay" data-arg="${lay === 'ru' ? 'en' : 'ru'}">${lay === 'ru' ? 'EN' : 'RU'}</div>`;
+  const space = fmt === 'words' ? `<div class="k space" data-act="kb" data-arg=" ">${lay === 'en' ? 'English' : lay === 'ru' ? 'Русский' : 'пробел'}</div>` : `<div class="k space dim">без пробелов</div>`;
+  return `<div class="kb">${cap}<div class="r">${row(rows[0])}</div><div class="r">${row(rows[1])}</div><div class="r">${shift}${row(rows[2])}<div class="k fn" data-act="bksp">${ic(P.bksp, 22)}</div></div><div class="r">${sw}${lang}${space}<div class="k fn go" data-act="submit">${ic(P.check)}</div></div></div>`;
+}
+function inputScreen({ title, sub, prompt, hint, fmt, btn = 'Проверить', top = '', below = '' }) {
+  const typed = S.buf.trim() ? `<div class="t13 c3">Набрано: ${sizeText(fmt, S.buf)}</div>` : '';
+  return `<div class="scr">${appbar(title, { close: true, sub })}
+    <div class="body">${top}<div class="col g4"><div class="t20 b">${prompt}</div><div class="t14 c3">${hint}</div></div>
+      ${fieldView(fmt)}${typed}
+      ${S.err ? `<div class="err">${ic(P.warn, 18)}<span>${S.err}</span></div>` : ''}${below}</div>
+    <div class="pad"><button class="btn pri" data-act="submit" ${S.buf.trim() ? '' : 'disabled'}>${btn}</button></div>
+    ${kbView(fmt)}</div>`;
+}
+const dots = () => `<div class="dots ${S.err ? 'bad' : ''}">${[0, 1, 2, 3, 4, 5].map(i => `<i class="${i < S.pinBuf.length ? 'on' : ''}"></i>`).join('')}</div>`;
+function pinpad() {
+  const k = d => `<div class="pk" data-act="pin" data-arg="${d}">${d}</div>`;
+  return `<div class="pp">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(k).join('')}<div class="pk blank"></div>${k(0)}<div class="pk fn" data-act="pinbk">${ic(P.bksp, 26)}</div></div>`;
+}
+function ovlView(o) {
+  return `<div class="ovl"><div class="sheet">
+    <div class="row g8 t13 c3">${ic(P.key, 16)}RememberKey</div>
+    <div class="t20 b">${o.title}</div><div class="t14 c2">${o.sub}</div>
+    <div class="fp ${o.ok ? 'ok' : ''}" data-act="fp">${o.ok ? ic(P.check, 40) : FP(44)}</div>
+    <div class="t13 c3">${o.ok ? 'Отпечаток подтверждён' : 'Приложите палец к сканеру под экраном'}</div>
+    <div class="tbtn" data-act="bioCancel">Отмена</div></div></div>`;
+}
+function bio(sub, next, title = 'Подтвердите, что это вы', cancel = null) { S.overlay = { title, sub, next, cancel, ok: false }; render(); }
+function fpTouch() {
+  const o = S.overlay; if (!o || o.ok) return;
+  o.ok = true; render();
+  setTimeout(() => { if (S.overlay !== o) return; S.overlay = null; o.next(); }, 650);
+}
+
+// ---------- экраны ----------
+const SCR = {};
+
+SCR.home = { view() {
+  const lost = S.keys.filter(k => !k.copy && k.learned);
+  const due = S.keys.filter(k => k.learned && diffDays(k.due) <= 0);
+  const unl = S.keys.find(k => !k.learned);
+  let h = '';
+  if (lost.length) h += `<div class="card alert">
+      <div class="row g10 red">${ic(P.warn, 22)}<div class="t16 b">${lost.length > 1 ? `Копии ключей ${lost.map(k => k.id).join(' и ')} уничтожены` : `Копия ключа ${lost[0].id} уничтожена`}</div></div>
+      <div class="t14 c2">В настройки Android добавили новый отпечаток, и система стёрла ключ шифрования. Подсматривать нельзя, пока не введёте ключи по памяти заново — хеш для проверки остался.</div>
+      <button class="btn red" data-act="restore" data-arg="${lost[0].id}">Восстановить копию · ${esc(lost[0].name)}</button></div>`;
+  if (!S.keys.length) h += `<div class="card"><div class="cap c3">Начало</div><div class="t22 b">Ключей пока нет</div><div class="t14 c2">Добавьте первый ключ — выучим его сегодня же.</div><button class="btn pri" data-act="add">${ic(P.add, 20)}Добавить ключ</button></div>`;
+  else if (unl) h += `<div class="card"><div class="cap" style="color:var(--blue)">Не закончено</div><div class="t22 b">Заучивание · ${esc(unl.name)}</div><div class="t14 c2">Откроем ключ по PIN и отпечатку и повторим 3 раза подряд по памяти.</div><button class="btn pri" data-act="continueLearn" data-arg="${unl.id}">Продолжить</button></div>`;
+  else if (due.length) h += `<div class="card due"><div class="cap amber">Сегодня</div><div class="t26 xb">${due.length} ${plural(due.length, 'проверка', 'проверки', 'проверок')}</div><div class="t14 c2">${due.map(k => esc(k.name)).join(', ')} · по памяти, около минуты</div><button class="btn pri" data-act="check" data-arg="${due[0].id}">Начать</button></div>`;
+  else { const nx = [...S.keys].sort((a, b) => a.due - b.due)[0]; h += `<div class="card"><div class="row g10 acc">${ic(P.check, 22)}<div class="t18 b" style="color:var(--text)">На сегодня всё</div></div><div class="t14 c2">Следующая проверка — ${esc(nx.name)}, ${fmtDate(nx.due)} (${rel(nx.due)}). Напомним уведомлением.</div></div>`; }
+  if (S.keys.length) h += `<div class="sect">Мои ключи</div>${S.keys.map(keyCard).join('')}<div class="addcard" data-act="add">${ic(P.add, 20)}Добавить ключ</div>`;
+  return `<div class="scr">${appbar('Ключи', { back: false, sub: `${WDAYS[TODAY.getDay()]}, ${fmtDate(TODAY)}` })}<div class="body">${h}</div>${navbar('home')}</div>`;
+} };
+function keyCard(k) {
+  const n = diffDays(k.due);
+  const st = !k.learned ? `<span class="st blue">Заучивание</span>` : n <= 0 ? `<span class="st amber">Пора проверить</span>` : `<span class="st">${rel(k.due)}</span>`;
+  const line = !k.learned ? 'Заучивание не закончено' : k.level >= 6 ? 'Поддержание · каждые 60 дней' : `Проверка ${k.level + 1} из 6 · интервал ${daysWord(INTERVALS[k.level])}`;
+  const copy = k.copy ? `<span class="cp ok">${ic(P.lock, 14)}копия</span>` : `<span class="cp bad">${ic(P.lock, 14)}нет копии</span>`;
+  return `<div class="kc" data-act="key" data-arg="${k.id}">
+    <div class="row g12"><div class="kav f-${k.fmt}">${k.id}</div><div class="col w1"><div class="t17 b">${esc(k.name)}</div><div class="t13 c3">${FMT[k.fmt].name} · ${sizeText(k.fmt, k.secret)}</div></div>${st}</div>
+    ${track(k)}<div class="row sb t13"><span class="c2">${line}</span>${copy}</div></div>`;
+}
+
+SCR.key = { view({ id }) {
+  const k = key(id);
+  let tl = k.hist.map(e => `<div class="tl ${e.k}"><div class="dot">${ic(e.k === 'peek' ? P.eye : e.k === 'fail' ? P.close : e.k === 'learn' ? P.key : P.check, 14)}</div><div class="col w1"><div class="t15">${esc(e.t)}</div><div class="t13 c3">${fmtDate(e.d)}</div></div></div>`).join('');
+  if (k.learned) {
+    let d = k.due; const from = Math.min(k.level, 5);
+    for (let i = from; i < 6; i++) {
+      const now = i === from;
+      tl += `<div class="tl ${now ? 'next' : 'fut'}"><div class="dot"></div><div class="col w1"><div class="t15">Через ${daysWord(INTERVALS[i])}${i === 5 ? ' — и дальше всегда' : ''}</div><div class="t13 c3">${fmtDate(d)}${now ? ' · ' + rel(d) : ''}</div></div></div>`;
+      if (i < 5) d = addDays(d, INTERVALS[i + 1]);
+    }
+  }
+  const copy = k.copy
+    ? `<div class="card"><div class="row g10"><div class="ico ok">${ic(P.lock, 20)}</div><div class="col w1"><div class="t16 b">Зашифрованная копия на месте</div><div class="t13 c3">Проверено при запуске, сегодня в 14:30</div></div></div><div class="t14 c2">Открывается PIN-кодом приложения и отпечатком. Новый отпечаток в настройках Android её уничтожит.</div></div>`
+    : `<div class="card alert"><div class="row g10"><div class="ico bad">${ic(P.warn, 20)}</div><div class="col w1"><div class="t16 b">Копия уничтожена</div><div class="t13 c3">В телефон добавили новый отпечаток</div></div></div><div class="t14 c2">Подсмотреть нельзя. Введите ключ по памяти — сверим с хешем и создадим новую копию.</div><button class="btn red sm" data-act="restore" data-arg="${k.id}">Восстановить копию</button></div>`;
+  const due = k.learned && diffDays(k.due) <= 0;
+  const btns = !k.learned
+    ? `<button class="btn pri" data-act="continueLearn" data-arg="${k.id}">Продолжить заучивание</button>`
+    : `<button class="btn pri" data-act="check" data-arg="${k.id}">${due ? 'Проверить сейчас' : 'Потренироваться'}</button>${k.copy ? `<button class="btn warn" data-act="peek" data-arg="${k.id}">${ic(P.lock, 20)}Подсмотреть</button>` : ''}`;
+  return `<div class="scr">${appbar(esc(k.name))}<div class="body">
+    <div class="row g12"><div class="kav big f-${k.fmt}">${k.id}</div><div class="col w1"><div class="t20 b">${esc(k.name)}</div><div class="t14 c3">${FMT[k.fmt].name} · ${sizeText(k.fmt, k.secret)} · добавлен ${fmtDate(k.created)}</div></div></div>
+    <div class="stats"><div><b>${k.checks}</b><span>проверок</span></div><div><b>${k.first}</b><span>с первой попытки</span></div><div><b class="${k.peeks ? 'amber' : ''}">${k.peeks}</b><span>подсмотров</span></div></div>
+    ${copy}
+    <div class="sect">Расписание</div><div class="col" style="padding:4px 4px 0">${tl || '<div class="t14 c3">Расписание начнётся после заучивания</div>'}</div>
+    <div class="link" style="color:var(--red)" data-act="toast" data-arg="Удаление — после PIN и отпечатка, с подтверждением">Удалить ключ</div>
+  </div><div class="pad">${btns}</div></div>`;
+} };
+
+SCR.check = { view(p) {
+  const k = key(p.id);
+  const T = { check: 'Проверка', practice: 'Тренировка', relearn: 'Повтор', restore: 'Восстановление' }[p.mode];
+  const info = {
+    check: `${sizeText(k.fmt, k.secret)}${p.attempt > 1 ? ` · попытка ${p.attempt}` : ''}`,
+    practice: `${sizeText(k.fmt, k.secret)} · вне расписания, проверка ${fmtDate(k.due)} не сдвинется`,
+    relearn: `${sizeText(k.fmt, k.secret)} · копия скрыта, проверка — завтра`,
+    restore: `${sizeText(k.fmt, k.secret)} · сверим с хешем и создадим новую копию`,
+  }[p.mode];
+  if (p.mode === 'practice') {
+    // тренировка — три верных ввода; ошибка не сбрасывает счёт
+    const r = p.round || 1;
+    const below = p.failed && k.copy ? `<div class="link" style="color:var(--amber)" data-act="peekFail">Подсмотреть — PIN и отпечаток</div>` : '';
+    return inputScreen({ title: `${T} · ${esc(k.name)}`, top: stepsBar(r, `Ввод ${r} из 3`), prompt: r === 1 ? 'Введите ключ по памяти' : 'Ещё раз — по памяти', hint: info, fmt: k.fmt, below });
+  }
+  return inputScreen({ title: `${T} · ${esc(k.name)}`, prompt: p.mode === 'relearn' ? 'Теперь — по памяти' : 'Введите ключ по памяти', hint: info, fmt: k.fmt, btn: p.mode === 'restore' ? 'Сверить с хешем' : 'Проверить' });
+} };
+const stepsBar = (r, label) => `<div class="col g4"><div class="steps">${[1, 2, 3].map(i => `<i class="${i < r ? 'done' : i === r ? 'now' : ''}"></i>`).join('')}</div><div class="t13 c3">${label}</div></div>`;
+
+SCR.result = { view(p) {
+  const k = key(p.id);
+  let big, title, text, extra = '', btns, bar;
+  if (p.kind === 'ok') {
+    big = `<div class="bigic ok">${ic(P.check, 48)}</div>`; title = 'Верно!';
+    if (p.mode === 'check') text = p.attempt === 1 ? `Следующая проверка ${rel(k.due)} — ${fmtDate(k.due)}.` : `Верно ${fromAttempt(p.attempt)}, поэтому интервал не растёт: снова ${rel(k.due)} — ${fmtDate(k.due)}.`;
+    else if (p.mode === 'relearn') text = `Ключ снова на повторе: проверка завтра, ${fmtDate(k.due)}. Интервалы пойдут заново — 1, 3, 7…`;
+    else text = `Три раза верно. Это тренировка — расписание не меняется: проверка ${fmtDate(k.due)}.`;
+    extra = `<div class="card w100">${track(k, true)}<div class="t13 c3">${k.level >= 6 ? 'Поддержание: каждые 60 дней' : `Пройдено проверок: ${k.level} из 6, потом — каждые 60 дней`}</div></div>`;
+    const nx = S.keys.find(x => x.learned && diffDays(x.due) <= 0 && x.id !== k.id);
+    btns = nx ? `<button class="btn pri" data-act="check" data-arg="${nx.id}">Дальше: ${esc(nx.name)}</button><button class="btn sec" data-act="home">На главную</button>` : `<button class="btn pri" data-act="home">Готово</button>`;
+    bar = { check: 'Проверка', relearn: 'Повтор', practice: 'Тренировка' }[p.mode];
+  } else if (p.kind === 'fail') {
+    big = `<div class="bigic bad">${ic(P.close, 48)}</div>`; title = 'Не совпало';
+    text = 'Хеш не подсказывает, где ошибка. Попробуйте ещё раз — например, тот вариант, в котором сомневаетесь.';
+    extra = k.copy ? `<div class="t13 c3 tc" style="max-width:320px">Подсмотр — по PIN и отпечатку, попадает в журнал. После него ключ вернётся на проверку завтра.</div>` : `<div class="note red">${ic(P.warn, 18)}<span>Копия ключа уничтожена — подсмотреть нельзя. Остаётся вспоминать.</span></div>`;
+    btns = `<button class="btn pri" data-act="retry">Ещё раз</button>${k.copy ? `<button class="btn warn" data-act="peekFail">${ic(P.lock, 20)}Подсмотреть</button>` : ''}`;
+    bar = { check: 'Проверка', relearn: 'Повтор', practice: 'Тренировка' }[p.mode];
+  } else {
+    big = `<div class="bigic ok">${ic(P.lock, 44)}</div>`; title = 'Копия восстановлена';
+    text = `${esc(k.name)} снова можно подсмотреть по PIN и отпечатку.`;
+    const nl = S.keys.find(x => !x.copy && x.learned);
+    btns = nl ? `<button class="btn pri" data-act="restore" data-arg="${nl.id}">Дальше: ${esc(nl.name)}</button><button class="btn sec" data-act="home">На главную</button>` : `<button class="btn pri" data-act="home">Готово</button>`;
+    bar = 'Восстановление';
+  }
+  return `<div class="scr">${appbar(`${bar} · ${esc(k.name)}`, { close: true, closeAct: 'home' })}<div class="body center">${big}<div class="t26 xb">${title}</div><div class="t15 c2 tc" style="max-width:340px">${text}</div>${extra}</div><div class="pad">${btns}</div></div>`;
+} };
+
+SCR.pin = { pin: true, view(p) {
+  const k = key(p.id), left = Math.ceil((S.lockUntil - Date.now()) / 1000);
+  const msg = left > 0 ? `<span class="red">Слишком много ошибок. Следующая попытка через <b id="lockleft">${left}</b> с</span>` : S.err ? `<span class="red">${S.err}</span>` : 'Потом — отпечаток пальца';
+  return `<div class="scr">${appbar(`${p.then === 'learn' ? 'Заучивание' : 'Подсмотр'} · ${esc(k.name)}`, { close: true })}
+    <div class="body center"><div class="bigic blue">${ic(P.lock, 44)}</div><div class="t20 b">Введите PIN приложения</div>${dots()}<div class="t14 c3 tc">${msg}</div></div>
+    ${pinpad()}</div>`;
+}, enter() {
+  if (S.lockUntil <= Date.now()) return;
+  const t = setInterval(() => { const left = Math.ceil((S.lockUntil - Date.now()) / 1000); if (left <= 0) { clearInterval(t); render(); return; } const el = $('#lockleft'); if (el) el.textContent = left; }, 250);
+  timers.push(t);
+} };
+
+SCR.pinset = { pin: true, view(p) {
+  return `<div class="scr">${appbar('PIN приложения', { back: false, sub: `шаг ${p.step} из 2` })}
+    <div class="body center"><div class="bigic blue">${ic(P.lock, 44)}</div><div class="t20 b">${p.step === 1 ? 'Придумайте PIN из 6 цифр' : 'Повторите PIN'}</div>${dots()}
+    <div class="t14 ${S.err ? 'red' : 'c3'} tc" style="max-width:330px">${S.err || 'Нужен только для подсмотра, вместе с отпечатком. Не берите PIN блокировки телефона — его видят чаще.'}</div></div>
+    ${pinpad()}</div>`;
+} };
+
+SCR.peek = { view(p) {
+  const k = key(p.id), ch = chunks(k.fmt, k.secret), c = cols(k.fmt, k.secret);
+  const mine = p.last ? chunks(k.fmt, p.last) : [];
+  const wrongAt = i => !(mine[i] && same(k.fmt, mine[i], ch[i]));
+  let h = `<div class="note amber">${ic(P.eye, 18)}<span>Записано в журнал, ${clock()}. Экран закроется сам через минуту.</span></div>`;
+  const isW = k.fmt === 'words';
+  if (p.last) {
+    // фраза — строкой, неверные слова красным; символы — блоками по 4
+    const where = isW
+      ? `<div class="phrase">${[...ch.map((x, i) => wrongAt(i) ? `<span class="bad">${mine[i] ? esc(mine[i]) : '…'}</span>` : esc(mine[i])), ...mine.slice(ch.length).map(m => `<span class="bad">${esc(m)}</span>`)].join(' ')}</div>`
+      : `<div class="chunks ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => { const bad = wrongAt(i); return `<div class="ch ${bad ? 'bad' : 'good'}"><span class="n">${i + 1}</span>${mine[i] ? esc(mine[i]) : '—'}<span class="mk">${ic(bad ? P.close : P.check, 14)}</span></div>`; }).join('')}</div>`;
+    h += `<div class="card lvl"><div class="lh"><span class="lv">1</span><div class="col w1"><div class="t16 b">Где ошибка</div><div class="t13 c3">Отметим ${isW ? 'красным неверные слова' : 'неверные блоки'} в вашем вводе. Сам ключ не покажем.</div></div></div>${p.where ? where : `<button class="btn sec sm" data-act="where">Показать, где ошибка</button>`}</div>`;
+  }
+  const parts = isW
+    ? `<div class="phrase">${ch.map((x, i) => p.open.includes(i) ? `<span class="op">${esc(x)}</span>` : `<span class="hid ${p.where && wrongAt(i) ? 'hint' : ''}" data-act="part" data-arg="${i}">•••</span>`).join(' ')}</div>`
+    : `<div class="chunks ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => { const open = p.open.includes(i); return `<div class="ch slot ${open ? 'open' : ''} ${p.where && !open && wrongAt(i) ? 'hintbad' : ''}" data-act="part" data-arg="${i}"><span class="n">${i + 1}</span>${open ? esc(x) : '••••'}</div>`; }).join('')}</div>`;
+  h += `<div class="card lvl"><div class="lh"><span class="lv">${p.last ? 2 : 1}</span><div class="col w1"><div class="t16 b">Подсказать часть</div><div class="t13 c3">${isW ? 'Нажмите на скрытое слово, чтобы открыть только его.' : 'Нажмите на блок, чтобы открыть только его.'}</div></div></div>${parts}</div>`;
+  h += `<div class="card lvl"><div class="lh"><span class="lv">${p.last ? 3 : 2}</span><div class="col w1"><div class="t16 b">Показать целиком</div><div class="t13 c3">Видно, пока держите палец на кнопке.</div></div></div>
+    <div class="fullbox" id="fullbox"><div class="hidden">${'•'.repeat(Math.min(norm(k.fmt, k.secret).length, 18))}</div><div class="shown">${esc(k.fmt === 'words' ? k.secret : ch.join(' '))}</div></div>
+    <div class="hold" data-hold="1">${ic(P.eye, 20)}Удерживайте, чтобы видеть</div></div>`;
+  const right = `<div class="timer" id="ptimer">${Math.floor(p.left / 60)}:${String(p.left % 60).padStart(2, '0')}</div>`;
+  return `<div class="scr">${appbar(`Подсмотр · ${esc(k.name)}`, { close: true, closeAct: 'peekDone', right })}<div class="body">${h}</div><div class="pad"><button class="btn pri" data-act="peekDone">Закрыть и ввести по памяти</button></div></div>`;
+}, enter(p) {
+  const t = setInterval(() => {
+    p.left--;
+    const el = $('#ptimer'); if (el) el.textContent = `${Math.floor(p.left / 60)}:${String(p.left % 60).padStart(2, '0')}`;
+    if (p.left <= 0) { clearInterval(t); peekDone(); }
+  }, 1000);
+  timers.push(t);
+} };
+
+SCR.lost = { view({ id }) {
+  const k = key(id);
+  return `<div class="scr">${appbar(`Подсмотр · ${esc(k.name)}`, { close: true })}<div class="body center">
+    <div class="bigic bad">${ic(P.warn, 44)}</div><div class="t24 b">Копия уничтожена</div>
+    <div class="t15 c2 tc" style="max-width:340px">В настройки Android добавили новый отпечаток, и система стёрла ключ шифрования копии. Так задумано: новый палец не должен открывать старые секреты.</div>
+    <div class="note">${ic(P.hash, 18)}<span>Хеш для проверок остался. Если помните ключ — введите его: сверим с хешем и создадим новую копию.</span></div>
+  </div><div class="pad"><button class="btn pri" data-act="restore" data-arg="${id}">Восстановить копию</button></div></div>`;
+} };
+
+SCR.add1 = { view(p) {
+  const name = p.name ?? `Ключ ${nextLetter()}`;
+  const opts = Object.entries(FMT).map(([f, v]) => `<div class="opt ${p.fmt === f ? 'on' : ''}" data-act="fmt" data-arg="${f}"><div class="radio"></div><div class="col w1"><div class="t16 b">${v.name}</div><div class="t13 c3">${v.desc}</div></div><div class="ex">${v.ex}</div></div>`).join('');
+  return `<div class="scr">${appbar('Новый ключ', { close: true, sub: 'шаг 1 из 4' })}<div class="body">
+    <div class="lbl">Название</div><input class="tin" id="kname" value="${esc(name)}" maxlength="24">
+    <div class="t13 c3" style="margin:-4px 4px 0">Видно на главной и в уведомлениях — не пишите в нём сам ключ.</div>
+    <div class="lbl">Из чего состоит ключ</div>${opts}
+  </div><div class="pad"><button class="btn pri" data-act="add1next" ${p.fmt ? '' : 'disabled'}>Дальше</button></div></div>`;
+} };
+SCR.add2 = { view() {
+  return inputScreen({ title: `Новый ключ · ${esc(S.newKey.name)}`, sub: 'шаг 2 из 4', prompt: 'Введите ключ', hint: 'Ключ видит только RememberKey: системная клавиатура не участвует', fmt: S.newKey.fmt, btn: 'Дальше' });
+} };
+SCR.add3 = { view() {
+  return inputScreen({ title: `Новый ключ · ${esc(S.newKey.name)}`, sub: 'шаг 3 из 4', prompt: 'Повторите ключ', hint: 'Чтобы исключить опечатку. Потом — отпечаток, он нужен, чтобы зашифровать копию.', fmt: S.newKey.fmt, btn: 'Сохранить' });
+} };
+SCR.added = { view({ id }) {
+  const k = key(id);
+  const row = (t, d) => `<div class="row g12" style="align-items:flex-start"><div class="ico ok">${ic(P.check, 20)}</div><div class="col w1"><div class="t16 b">${t}</div><div class="t13 c3">${d}</div></div></div>`;
+  return `<div class="scr">${appbar(`Новый ключ · ${esc(k.name)}`, { close: true, closeAct: 'home', sub: 'шаг 4 из 4' })}<div class="body center">
+    <div class="bigic ok">${ic(P.check, 48)}</div><div class="t26 xb">Ключ сохранён</div>
+    <div class="card w100">${row('Проверочный хеш', 'для проверок — без PIN и отпечатка')}${row('Зашифрованная копия', 'чтобы подсмотреть — PIN и отпечаток')}</div>
+    <div class="t14 c2 tc" style="max-width:340px">Дальше — заучивание: 3 раза подряд по памяти, пара минут. Пока оно идёт, ключ можно смотреть свободно.</div>
+  </div><div class="pad"><button class="btn pri" data-act="learnStart" data-arg="${id}">Начать заучивание</button></div></div>`;
+} };
+
+const TIPS = {
+  words: 'Свяжите слова в одну нелепую сцену — её легче вспомнить, чем список. Проговорите сцену вслух.',
+  symbols: 'Учите блоками по 4 символа и проговаривайте каждый: «Т большая, q, семь, решётка».',
+};
+SCR.learn = { view(p) {
+  const k = key(p.id), ch = chunks(k.fmt, k.secret), c = cols(k.fmt, k.secret), isW = k.fmt === 'words';
+  const steps = stepsBar(p.round, `Повтор ${p.round} из 3 — подряд, без ошибок`);
+  const title = `Заучивание · ${esc(k.name)}`;
+  if (p.phase === 'show') return `<div class="scr">${appbar(title, { close: true, closeAct: 'home' })}<div class="body">${steps}
+      <div class="t20 b">Прочитайте и запомните</div>
+      ${isW ? `<div class="phrase big">${esc(k.secret)}</div>` : `<div class="chunks big ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => `<div class="ch"><span class="n">${i + 1}</span>${esc(x)}</div>`).join('')}</div>`}
+      <div class="tip">${ic(P.bulb, 18)}<span>${TIPS[k.fmt]}</span></div>
+    </div><div class="pad"><button class="btn pri" data-act="learnHide">Запомнил — скрыть</button></div></div>`;
+  if (p.phase === 'wrong') {
+    const mine = chunks(k.fmt, p.wrong);
+    const diff = isW
+      ? `<div class="phrase">${[...ch.map((x, i) => mine[i] && same(k.fmt, mine[i], x) ? esc(mine[i]) : `${mine[i] ? `<span class="bad">${esc(mine[i])}</span> ` : ''}<span class="fix">${esc(x)}</span>`), ...mine.slice(ch.length).map(m => `<span class="bad">${esc(m)}</span>`)].join(' ')}</div>`
+      : `<div class="chunks ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => { const ok = mine[i] && same(k.fmt, mine[i], x); return `<div class="ch ${ok ? 'good' : 'bad'}"><span class="n">${i + 1}</span><div class="col">${mine[i] ? esc(mine[i]) : '—'}${ok ? '' : `<span class="fix">${esc(x)}</span>`}</div><span class="mk">${ic(ok ? P.check : P.close, 14)}</span></div>`; }).join('')}</div>`;
+    return `<div class="scr">${appbar(title, { close: true, closeAct: 'home' })}<div class="body">${steps}
+      <div class="t20 b">Почти. Вот расхождение</div><div class="t14 c3">${isW ? 'Зачёркнуто — ваша ошибка, зелёным — как правильно.' : 'В красной рамке — ваш ввод с ошибкой, зелёным под ним — как правильно.'} Счёт повторов начнётся заново.</div>
+      ${diff}
+    </div><div class="pad"><button class="btn pri" data-act="learnAgain">Посмотреть и запомнить</button></div></div>`;
+  }
+  return inputScreen({ title, top: steps, prompt: p.round === 1 ? 'Теперь — по памяти' : 'Ещё раз — без подсказки', hint: `${sizeText(k.fmt, k.secret)} · пока идёт заучивание, смотреть можно свободно`, fmt: k.fmt, below: `<div class="link" data-act="learnShow">Показать ещё раз</div>` });
+} };
+SCR.learned = { view({ id }) {
+  const k = key(id);
+  return `<div class="scr">${appbar(`Заучивание · ${esc(k.name)}`, { close: true, closeAct: 'home' })}<div class="body center">
+    <div class="bigic ok">${ic(P.check, 48)}</div><div class="t26 xb">Выучено на сегодня</div>
+    <div class="t15 c2 tc" style="max-width:340px">Первая проверка завтра — ${fmtDate(k.due)}. Потом через 3, 7, 16 и 35 дней, дальше — каждые 60. Напомним уведомлением.</div>
+    <div class="card w100">${track(k, true)}</div>
+    <div class="note">${ic(P.lock, 18)}<span>Ключ стёрт из памяти приложения. Остались проверочный хеш и зашифрованная копия.</span></div>
+  </div><div class="pad"><button class="btn pri" data-act="home">Готово</button></div></div>`;
+} };
+
+SCR.journal = { view(p) {
+  const f = p.f || 'all';
+  const groups = { peek: ['peek', 'pin', 'lost', 'restore'], checks: ['ok', 'fail', 'learn'] };
+  const items = S.log.filter(e => f === 'all' || groups[f].includes(e.k));
+  let list = '', last = null;
+  for (const e of items) {
+    const dk = e.d.getTime();
+    if (dk !== last) { list += `${last !== null ? '</div>' : ''}<div class="dayh">${dayTitle(e.d)}</div><div class="lst">`; last = dk; }
+    list += `<div class="li"><div class="ico ${e.k}">${ic(LOGIC[e.k], 20)}</div><div class="col w1"><div class="t15 b5">${esc(e.title)}</div><div class="t13 c3">${esc(e.sub)}</div></div><div class="t13 c3">${e.time}</div></div>`;
+  }
+  if (last !== null) list += '</div>';
+  const checks = S.keys.reduce((a, k) => a + k.checks, 0), first = S.keys.reduce((a, k) => a + k.first, 0), peeks = S.log.filter(e => e.k === 'peek').length;
+  const chip = (id, label) => `<div class="chip ${f === id ? 'on' : ''}" data-act="filter" data-arg="${id}">${label}</div>`;
+  return `<div class="scr">${appbar('Журнал', { back: false })}<div class="body">
+    <div class="stats"><div><b>${checks}</b><span>проверок</span></div><div><b>${first}</b><span>с первой попытки</span></div><div><b class="${peeks ? 'amber' : ''}">${peeks}</b><span>подсмотров</span></div></div>
+    <div class="chips">${chip('all', 'Всё')}${chip('peek', 'Подсмотры и PIN')}${chip('checks', 'Проверки')}</div>
+    ${list || '<div class="t14 c3 tc" style="padding:24px">Пока пусто</div>'}
+    <div class="note">${ic(P.lock, 18)}<span>Журнал нельзя очистить: если ключ подсматривал кто-то другой, вы это увидите.</span></div>
+  </div>${navbar('journal')}</div>`;
+} };
+
+const DIAG = [
+  { t: 'Хранилище ключей', r: 'аппаратное, TEE · StrongBox в телефоне нет', st: 'ok' },
+  { t: 'Отпечаток пальца', r: 'Class 3 — подходит для шифрования', st: 'ok' },
+  { t: 'Тест шифрования', r: 'AES-256-GCM: без отпечатка — отказ, с отпечатком — работает', st: 'ok', bio: true },
+  { t: 'Блокировка экрана', r: 'PIN-код', st: 'ok' },
+  { t: 'Загрузчик и Verified Boot', r: 'загрузчик заблокирован, система не изменена', st: 'ok' },
+  { t: 'Специальные возможности', r: 'включённых служб нет', st: 'ok' },
+  { t: 'Отладка по USB', r: 'выключена', st: 'ok' },
+  { t: 'Обновление безопасности', r: '5 сентября 2024 — устарело, обновите систему', st: 'warn' },
+];
+const diagIcon = st => st === 'ok' ? `<div class="ico ok">${ic(P.check, 20)}</div>` : st === 'warn' ? `<div class="ico warn">${ic(P.warn, 20)}</div>` : st === 'bad' ? `<div class="ico bad">${ic(P.warn, 20)}</div>` : st === 'run' ? `<div class="ico pend"><div class="spin"></div></div>` : `<div class="ico pend"></div>`;
+SCR.security = { view() {
+  const learned = S.keys.filter(k => k.learned), lost = learned.filter(k => !k.copy).length;
+  const warns = DIAG.filter(d => d.st === 'warn').length + (lost ? 1 : 0);
+  const rows = DIAG.map(d => `<div class="li">${diagIcon(d.st)}<div class="col w1"><div class="t15">${d.t}</div><div class="t13 c3">${d.r}</div></div></div>`).join('')
+    + `<div class="li">${diagIcon(lost ? 'bad' : 'ok')}<div class="col w1"><div class="t15">Копии ключей</div><div class="t13 c3">${learned.length ? `${learned.length - lost} из ${learned.length} на месте` : 'ключей пока нет'}</div></div></div>`;
+  return `<div class="scr">${appbar('Защита', { back: false })}<div class="body">
+    <div class="card"><div class="row g12"><div class="ico ${warns ? 'warn' : 'ok'}" style="width:44px;height:44px">${ic(P.shield, 26)}</div><div class="col w1"><div class="t18 b">${warns ? `${warns} ${plural(warns, 'замечание', 'замечания', 'замечаний')}` : 'Всё в порядке'}</div><div class="t13 c3">Проверено сегодня в 14:30</div></div><span class="chip0">ваш телефон</span></div></div>
+    <div class="sect">Телефон</div><div class="lst">${rows}</div>
+    <div class="sect">Подсмотр</div><div class="lst">
+      <div class="li click" data-act="toast" data-arg="Смена PIN: старый PIN, отпечаток, новый PIN дважды"><div class="ico pend">${ic(P.lock, 20)}</div><div class="col w1"><div class="t15">PIN приложения</div><div class="t13 c3">6 цифр · сменить</div></div>${ic(P.chevron, 20)}</div>
+      <div class="li"><div class="ico pend">${ic(P.warn, 20)}</div><div class="col w1"><div class="t15">Неверный PIN</div><div class="t13 c3">после третьей ошибки пауза 30 с, дальше дольше; ничего не стирается</div></div></div>
+      <div class="li"><div class="ico pend">${ic(P.eye, 20)}</div><div class="col w1"><div class="t15">Экран копии</div><div class="t13 c3">закрывается сам через 60 с; скриншоты и запись экрана запрещены</div></div></div>
+    </div>
+    <button class="btn sec" data-act="secRecheck">Проверить заново</button>
+  </div>${navbar('security')}</div>`;
+} };
+
+SCR.diag = { view(p) {
+  const rows = DIAG.map((d, i) => {
+    const paused = i === p.done && p.paused;
+    const st = i < p.done ? d.st : paused ? 'warn' : i === p.done ? 'run' : 'pend';
+    const sub = i < p.done ? d.r : paused ? 'отпечаток отменён — нажмите, чтобы повторить' : st === 'run' ? (d.bio ? 'ждём отпечаток — ключ временный, секретов в нём нет' : 'проверяем…') : '';
+    return `<div class="li ${st === 'pend' ? 'dim' : ''} ${paused ? 'click' : ''}" ${paused ? 'data-act="diagRetry"' : ''}>${diagIcon(st)}<div class="col w1"><div class="t15">${d.t}</div>${sub ? `<div class="t13 c3">${sub}</div>` : ''}</div></div>`;
+  }).join('');
+  const done = p.done >= DIAG.length, onb = p.from === 'onboard';
+  return `<div class="scr">${appbar('Проверка телефона', { back: !onb, sub: 'временные тестовые ключи, без ваших секретов' })}<div class="body">
+    <div class="lst">${rows}</div>
+    ${done ? `<div class="note">${ic(P.shield, 18)}<span>Телефон подходит: ключи шифрования хранятся аппаратно (TEE), отпечаток Class 3, загрузчик заблокирован. Одно замечание — устаревшее обновление безопасности. Данные — с вашего телефона, 21 ноября.</span></div>` : ''}
+  </div><div class="pad"><button class="btn pri" data-act="diagNext" ${done ? '' : 'disabled'}>${onb ? 'Дальше: PIN приложения' : 'Готово'}</button></div></div>`;
+}, enter(p) {
+  const t = setInterval(() => {
+    if (S.overlay || S.screen !== 'diag' || p.paused) return;
+    const d = DIAG[p.done];
+    if (!d) { clearInterval(t); return; }
+    if (d.bio && !p.bioDone) { bio('Временный ключ: зашифруем и расшифруем тестовую строку. Без отпечатка расшифровка уже отказала.', () => { p.bioDone = true; render(); }, 'Тест шифрования', () => { p.paused = true; }); return; }
+    p.done++; render();
+  }, 420);
+  timers.push(t);
+} };
+
+SCR.onboard = { view() {
+  const pr = (p, cls, t, d) => `<div class="pr"><div class="ico ${cls}">${ic(p, 20)}</div><div class="col w1 g2"><div class="t16 b">${t}</div><div class="t14 c2">${d}</div></div></div>`;
+  return `<div class="scr"><div class="body" style="padding-top:28px;gap:20px">
+    <div class="col ac g10 tc"><div class="logo">${ic(P.key, 44)}</div><div class="t28 xb">RememberKey</div><div class="t15 c2">Тренажёр памяти для ключей, которые нужно помнить всегда</div></div>
+    ${pr(P.bulb, 'learn', 'Ключ живёт в голове', 'Приложение напоминает и проверяет: через 1, 3, 7, 16, 35 дней, дальше каждые 60.')}
+    ${pr(P.hash, 'ok', 'Проверка — по хешу', 'Чтобы проверить, ключ не расшифровывается. PIN и отпечаток не нужны.')}
+    ${pr(P.eye, 'peek', 'Подсмотреть — по PIN и отпечатку', 'Сначала по частям, целиком — в крайнем случае. Каждый подсмотр попадает в журнал.')}
+    ${pr(P.warn, 'bad', 'Копия в телефоне хрупкая', 'Новый отпечаток в настройках уничтожит её — тогда ключ нужно ввести по памяти заново. Сброс, удаление приложения или потеря телефона уничтожат всё.')}
+  </div><div class="pad"><button class="btn pri" data-act="diagRun">Проверить телефон</button></div></div>`;
+} };
+
+SCR.notif = { view() {
+  const k = key('A');
+  return `<div class="scr lock"><div class="lk-time">9:00</div><div class="lk-date">${WDAYS[TODAY.getDay()]}, ${fmtDate(TODAY)}</div>
+    <div class="notif" data-act="notifOpen"><div class="row g8 t13 c2"><span class="nic">${ic(P.key, 14)}</span>RememberKey · сейчас</div><div class="t16 b">Пора проверить ${esc(k.name)}</div><div class="t14 c2">Проверка ${Math.min(k.level + 1, 6)} из 6 · по памяти, около минуты</div></div>
+    <div class="w1"></div><div class="lk-fp">${FP(40)}</div><div class="t13 c3" style="margin-bottom:22px">Нажмите на уведомление</div></div>`;
+} };
+
+// ---------- действия ----------
+function startCheck(id) {
+  const k = key(id);
+  if (!k.learned) return act('continueLearn', id);
+  go('check', { id, mode: diffDays(k.due) <= 0 ? 'check' : 'practice', attempt: 1 });
+}
+function startPeek(id, last) { const k = key(id); if (!k.copy) return go('lost', { id }); go('pin', { id, last }); }
+function typeChar(c) {
+  const f = inputFmt(); if (!f) return;
+  if (f !== 'words' && c === ' ') return;
+  if (S.buf.length >= 80) return;
+  S.buf += c; S.err = '';
+}
+function submit() {
+  const f = inputFmt(); if (!f || !S.buf.trim()) return;
+  const s = S.screen;
+  if (s === 'check') return submitCheck();
+  if (s === 'learn') return submitLearn();
+  if (s === 'add2') { S.newKey.first = S.buf; return go('add3', {}); }
+  if (s === 'add3') {
+    if (!same(f, S.buf, S.newKey.first)) { S.err = 'Не совпадает с первым вводом. Введите ещё раз — или вернитесь на шаг назад.'; S.buf = ''; return render(); }
+    S.newKey.secret = S.buf;
+    return bio('Зашифруем копию ключа — по ней можно будет подсмотреть', addSave, 'Подтвердите отпечатком');
+  }
+}
+function submitCheck() {
+  const p = S.params, k = key(p.id), ok = same(k.fmt, S.buf, k.secret);
+  if (p.mode === 'restore') {
+    if (!ok) { S.err = 'Не совпало с хешем. Копии нет, подсмотреть нельзя — попробуйте ещё раз.'; S.buf = ''; return render(); }
+    return bio(`Создадим новую копию: ${k.name}`, () => { k.copy = true; log('restore', k, `Копия восстановлена · ${k.name}`, 'Совпало с хешем · новая копия создана'); go('result', { id: k.id, kind: 'restored' }, 'replace'); }, 'Подтвердите отпечатком');
+  }
+  if (p.mode === 'practice') {
+    const r = p.round || 1;
+    if (!ok) {
+      S.last = S.buf; p.failed = true;
+      log('fail', k, `Тренировка · ${k.name}`, `Не совпало · ввод ${r} из 3`);
+      S.buf = ''; S.err = 'Не совпало. Попробуйте ещё раз — счёт не сбрасывается.'; return render();
+    }
+    if (r < 3) { p.round = r + 1; resetInput(k.fmt); render(); toast(`Верно! Ввод ${p.round} из 3`); return; }
+    log('ok', k, `Тренировка · ${k.name}`, 'Верно 3 раза · расписание не меняется');
+    return go('result', { id: k.id, kind: 'ok', mode: 'practice', attempt: 1 }, 'replace');
+  }
+  const T = { check: 'Проверка', relearn: 'Повтор' }[p.mode];
+  if (!ok) {
+    S.last = S.buf;
+    log('fail', k, `${T} · ${k.name}`, `Не совпало · попытка ${p.attempt}`);
+    return go('result', { id: k.id, kind: 'fail', mode: p.mode, attempt: p.attempt }, 'replace');
+  }
+  if (p.mode === 'check') {
+    const prev = Math.min(k.level, 5);
+    k.checks++;
+    if (p.attempt === 1) { k.first++; k.level = Math.min(k.level + 1, 6); }
+    k.due = addDays(TODAY, INTERVALS[Math.min(k.level, 5)]);
+    k.hist.push({ d: TODAY, k: 'ok', t: `Через ${daysWord(INTERVALS[prev])} — верно${p.attempt > 1 ? ' ' + fromAttempt(p.attempt) : ''}` });
+    log('ok', k, `Проверка · ${k.name}`, `Верно ${fromAttempt(p.attempt)} · следующая ${rel(k.due)}`);
+  } else if (p.mode === 'relearn') {
+    k.hist.push({ d: TODAY, k: 'ok', t: 'После подсмотра — верно по памяти' });
+    log('ok', k, `Повтор · ${k.name}`, 'Верно по памяти после подсмотра · проверка завтра');
+  }
+  go('result', { id: k.id, kind: 'ok', mode: p.mode, attempt: p.attempt }, 'replace');
+}
+function createKey(n) {
+  const k = { id: nextLetter(), name: n.name, fmt: n.fmt, secret: norm(n.fmt, n.secret), created: TODAY, learned: false, level: 0, due: TODAY, copy: true, checks: 0, first: 0, peeks: 0, hist: [] };
+  S.keys.push(k); S.newKey = null;
+  log('add', k, `Добавлен · ${k.name}`, `${sizeText(k.fmt, k.secret)} · хеш и зашифрованная копия`);
+  return k;
+}
+function addSave() { const k = createKey(S.newKey); go('added', { id: k.id }, 'root'); }
+function submitLearn() {
+  const p = S.params, k = key(p.id);
+  if (same(k.fmt, S.buf, k.secret)) {
+    if (p.round >= 3) return finishLearn(k);
+    p.round++; resetInput(k.fmt); render(); toast(`Верно! Повтор ${p.round} из 3 — без подсказки`); return;
+  }
+  p.wrong = S.buf; p.phase = 'wrong'; p.round = 1; render();
+}
+function finishLearn(k) {
+  k.learned = true; k.level = 0; k.due = addDays(TODAY, 1);
+  k.hist.push({ d: TODAY, k: 'learn', t: 'Заучивание' });
+  log('learn', k, `Заучен · ${k.name}`, '3 раза подряд по памяти · первая проверка завтра');
+  go('learned', { id: k.id }, 'root');
+}
+function pinKey(d) {
+  if (S.lockUntil > Date.now() || S.pinBuf.length >= 6) return;
+  S.pinBuf += d; S.err = ''; render();
+  if (S.pinBuf.length === 6) setTimeout(pinDone, 180);
+}
+function pinDone() {
+  const p = S.params, v = S.pinBuf; S.pinBuf = '';
+  if (S.screen === 'pinset') {
+    if (p.step === 1) { p.first = v; p.step = 2; return render(); }
+    if (v !== p.first) { p.step = 1; p.first = ''; S.err = 'PIN не совпал. Придумайте заново.'; return render(); }
+    S.pin = v; log('diag', null, 'PIN приложения создан', 'Нужен для подсмотра вместе с отпечатком');
+    return go('home', {}, 'root');
+  }
+  if (S.screen !== 'pin') return;
+  const k = key(p.id);
+  if (v === S.pin) {
+    S.pinFails = 0; render();
+    return bio(p.then === 'learn' ? `Откроется ${k.name}, чтобы продолжить заучивание` : `Откроется копия: ${k.name}`, () => p.then === 'learn' ? resumeLearn(k) : openPeek());
+  }
+  S.pinFails++;
+  log('pin', k, 'Неверный PIN', `Подсмотр · ${k.name} · ошибка ${S.pinFails} подряд`);
+  if (S.pinFails >= 3) { S.lockUntil = Date.now() + [30, 60, 300, 900][Math.min(S.pinFails - 3, 3)] * 1000; S.err = ''; render(); SCR.pin.enter(); }
+  else { S.err = S.pinFails === 2 ? 'Неверный PIN. Ещё одна ошибка — и пауза 30 секунд.' : 'Неверный PIN'; render(); }
+}
+function resumeLearn(k) { log('peek', k, `Заучивание · ${k.name}`, 'Открыт по PIN и отпечатку, чтобы продолжить заучивание'); go('learn', { id: k.id, round: 1, phase: 'show' }, 'replace'); }
+function openPeek() {
+  const p = S.params, k = key(p.id);
+  k.peeks++;
+  const entry = log('peek', k, `Подсмотр · ${k.name}`, 'PIN и отпечаток · пока ничего не открыто');
+  go('peek', { id: k.id, last: p.last || null, entry, where: false, open: [], full: false, left: 60 }, 'replace');
+}
+function peekLevels(p, k) {
+  const out = [], n = chunks(k.fmt, k.secret).length;
+  if (p.where) out.push('где ошибка');
+  if (p.open.length) out.push(`открыто ${p.open.length} ${plural(p.open.length, ...FMT[k.fmt].part)} из ${n}`);
+  if (p.full) out.push('показан целиком');
+  return out.join(', ');
+}
+function peekLog() { const p = S.params; p.entry.sub = 'PIN и отпечаток · ' + (peekLevels(p, key(p.id)) || 'пока ничего не открыто'); }
+function peekDone() {
+  const p = S.params, k = key(p.id), lv = peekLevels(p, k);
+  if (!lv) { p.entry.sub = 'PIN и отпечаток · закрыто, ничего не открыто'; k.peeks--; return back(); }
+  k.level = 0; k.due = addDays(TODAY, 1);
+  k.hist.push({ d: TODAY, k: 'peek', t: `Подсмотр (${lv}) — повтор заново с 1 дня` });
+  goFromHome('check', { id: k.id, mode: 'relearn', attempt: 1 });
+}
+function setLost(on) {
+  S.keys.forEach(k => { if (k.learned) k.copy = !on; });
+  if (on) log('lost', null, 'Копии ключей уничтожены', 'В настройки Android добавили новый отпечаток');
+}
+
+function act(a, arg) {
+  const p = S.params;
+  switch (a) {
+    case 'back': return back();
+    case 'home': return go('home', {}, 'root');
+    case 'tab': return go(arg, {}, 'root');
+    case 'key': return go('key', { id: arg });
+    case 'check': return startCheck(arg);
+    case 'peek': return startPeek(arg, null);
+    case 'peekFail': return startPeek(p.id, S.last);
+    case 'retry': return go('check', { id: p.id, mode: p.mode, attempt: p.attempt + 1 }, 'replace');
+    case 'restore': return go('check', { id: arg, mode: 'restore', attempt: 1 });
+    case 'continueLearn': return go('pin', { id: arg, then: 'learn' });
+    case 'add': S.newKey = null; return go('add1', {});
+    case 'fmt': p.name = $('#kname').value; p.fmt = arg; return render();
+    case 'add1next': { if (!p.fmt) return; const name = $('#kname').value.trim() || `Ключ ${nextLetter()}`; S.newKey = { name, fmt: p.fmt }; return go('add2', {}); }
+    case 'learnStart': return go('learn', { id: arg, round: 1, phase: 'show' }, 'replace');
+    case 'learnHide': p.phase = 'recall'; resetInput(key(p.id).fmt); return render();
+    case 'learnShow': p.phase = 'show'; return render();
+    case 'learnAgain': p.phase = 'show'; return render();
+    case 'eye': S.show = !S.show; return render();
+    case 'kb': typeChar(arg); S.shift = false; return render();
+    case 'bksp': S.buf = S.buf.slice(0, -1); S.err = ''; return render();
+    case 'shift': S.shift = !S.shift; return render();
+    case 'lay': S.kb = arg; if (arg !== 'sym') S.kbAlpha = arg; S.shift = false; return render();
+    case 'submit': return submit();
+    case 'pin': return pinKey(arg);
+    case 'pinbk': S.pinBuf = S.pinBuf.slice(0, -1); return render();
+    case 'fp': return fpTouch();
+    case 'bioCancel': { const o = S.overlay; S.overlay = null; if (o?.cancel) o.cancel(); return render(); }
+    case 'diagRetry': p.paused = false; return render();
+    case 'where': p.where = true; peekLog(); return render();
+    case 'part': { const i = +arg; if (!p.open.includes(i)) { p.open.push(i); peekLog(); render(); } return; }
+    case 'peekDone': return peekDone();
+    case 'filter': p.f = arg; return render();
+    case 'diagRun': return go('diag', { done: 0, from: 'onboard' });
+    case 'secRecheck': return go('diag', { done: 0, from: 'security' });
+    case 'diagNext':
+      log('diag', null, 'Проверка телефона', '1 замечание: устаревшее обновление безопасности');
+      return p.from === 'onboard' ? go('pinset', { step: 1 }, 'root') : go('security', {}, 'root');
+    case 'notifOpen': { const k = key('A'); return goFromHome('check', { id: 'A', mode: diffDays(k.due) <= 0 ? 'check' : 'practice', attempt: 1 }); }
+    case 'toast': return toast(arg);
+  }
+}
+
+// ---------- события ----------
+const phone = $('#phone');
+phone.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || !phone.contains(el) || el.hasAttribute('disabled')) return;
+  act(el.dataset.act, el.dataset.arg);
+});
+phone.addEventListener('pointerdown', e => {
+  const h = e.target.closest('[data-hold]'); if (!h) return;
+  e.preventDefault();
+  h.classList.add('on'); $('#fullbox')?.classList.add('on');
+  if (S.screen === 'peek' && !S.params.full) { S.params.full = true; peekLog(); }
+});
+const release = () => { $('#fullbox')?.classList.remove('on'); document.querySelector('[data-hold].on')?.classList.remove('on'); };
+window.addEventListener('pointerup', release);
+window.addEventListener('pointercancel', release);
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (S.overlay) { if (e.key === 'Enter') { act('fp'); e.preventDefault(); } else if (e.key === 'Escape') act('bioCancel'); return; }
+  if (SCR[S.screen].pin) {
+    if (/^\d$/.test(e.key)) { pinKey(e.key); e.preventDefault(); }
+    else if (e.key === 'Backspace') { act('pinbk'); e.preventDefault(); }
+    return;
+  }
+  if (!inputFmt()) return;
+  if (e.key === 'Backspace') { act('bksp'); e.preventDefault(); }
+  else if (e.key === 'Enter') { submit(); e.preventDefault(); }
+  else if (e.key.length === 1) { typeChar(e.key); render(); e.preventDefault(); }
+});
+
+// ---------- панель ----------
+const NAMES = { home: 'Главная', key: 'Ключ подробно', check: 'Ввод по памяти', result: 'Результат', pin: 'PIN', pinset: 'Создание PIN', peek: 'Подсмотр', lost: 'Копия уничтожена', add1: 'Новый ключ: название и формат', add2: 'Новый ключ: ввод', add3: 'Новый ключ: повтор', added: 'Ключ сохранён', learn: 'Заучивание', learned: 'Заучивание закончено', journal: 'Журнал', security: 'Защита', diag: 'Проверка телефона', onboard: 'Первый запуск', notif: 'Уведомление на экране блокировки' };
+function syncPanel() {
+  const canFill = !!inputFmt() || !!SCR[S.screen].pin;
+  $('#fillOk').disabled = !canFill; $('#fillBad').disabled = !canFill;
+  $('#pnow').innerHTML = `Сейчас: <b>${NAMES[S.screen] || S.screen}</b>`;
+  $('#lostChk').checked = S.keys.some(k => k.learned && !k.copy);
+}
+function fill(correct) {
+  if (SCR[S.screen].pin) {
+    if (S.lockUntil > Date.now()) return;
+    S.pinBuf = S.screen === 'pinset' ? (correct || S.params.step === 1 ? '123456' : '000000') : correct ? S.pin : '000000';
+    render(); setTimeout(pinDone, 200); return;
+  }
+  const f = inputFmt(); if (!f) return;
+  const s = S.screen, p = S.params;
+  const target = s === 'check' || s === 'learn' ? key(p.id).secret : s === 'add2' ? DEMO_NEW[f] : S.newKey.first;
+  S.buf = correct ? target : mutate(f, target); S.err = ''; render();
+}
+function ensureDemo() { stopTimers(); if (!key('A') || !key('B')) { S = initial(); } S.overlay = null; }
+const J = {
+  home() { ensureDemo(); go('home', {}, 'root'); },
+  check() { ensureDemo(); const k = key('A'); goFromHome('check', { id: 'A', mode: diffDays(k.due) <= 0 ? 'check' : 'practice', attempt: 1 }); },
+  practice() { ensureDemo(); goFromHome('check', { id: 'B', mode: 'practice', attempt: 1, round: 1 }); },
+  fail() { ensureDemo(); S.last = mutate('words', key('A').secret); goFromHome('result', { id: 'A', kind: 'fail', mode: 'check', attempt: 1 }); },
+  pin() { ensureDemo(); if (!key('A').copy) setLost(false); S.last = mutate('words', key('A').secret); goFromHome('pin', { id: 'A', last: S.last }); },
+  peek() { ensureDemo(); if (!key('A').copy) setLost(false); S.last = mutate('words', key('A').secret); S.stack = [{ screen: 'home', params: {} }]; S.screen = 'pin'; S.params = { id: 'A', last: S.last }; openPeek(); },
+  key() { ensureDemo(); goFromHome('key', { id: 'A' }); },
+  keyB() { ensureDemo(); goFromHome('key', { id: 'B' }); },
+  add() { ensureDemo(); S.newKey = null; goFromHome('add1', {}); },
+  learn() { ensureDemo(); const k = S.keys.find(x => !x.learned) || createKey({ name: `Ключ ${nextLetter()}`, fmt: 'words', secret: DEMO_NEW.words }); goFromHome('learn', { id: k.id, round: 1, phase: 'show' }); },
+  journal() { ensureDemo(); go('journal', {}, 'root'); },
+  security() { ensureDemo(); go('security', {}, 'root'); },
+  diag() { ensureDemo(); S.stack = [{ screen: 'security', params: {} }]; S.screen = 'diag'; S.params = { done: 0, from: 'security' }; arrive(); },
+  notif() { ensureDemo(); go('notif', {}, 'root'); },
+  lost() { ensureDemo(); if (!S.keys.some(k => k.learned && !k.copy)) setLost(true); go('home', {}, 'root'); },
+  toggleLost(on) { ensureDemo(); setLost(on); render(); },
+  first() { stopTimers(); S = initial(); S.keys = []; S.log = []; S.pin = ''; go('onboard', {}, 'root'); },
+  reset() { stopTimers(); S = initial(); go('home', {}, 'root'); },
+};
+
+// масштаб
+const zoomSel = $('#zoom');
+function applyZoom(v) { $('#stage').style.setProperty('--z', v); }
+try { const z = localStorage.getItem('rk-zoom'); if (z) zoomSel.value = z; } catch (e) {}
+applyZoom(zoomSel.value);
+zoomSel.addEventListener('change', () => { applyZoom(zoomSel.value); try { localStorage.setItem('rk-zoom', zoomSel.value); } catch (e) {} });
+
+// старт: #peek, #add, #first … открывают нужный экран
+const start = location.hash.slice(1);
+if (J[start] && start !== 'toggleLost') J[start](); else go('home', {}, 'root');
+</script>
+</body>
+</html>

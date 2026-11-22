@@ -1,0 +1,8 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+*.apk
+# release signing key and its passwords: never commit, keep a backup elsewhere
+signing/
+.idea/
