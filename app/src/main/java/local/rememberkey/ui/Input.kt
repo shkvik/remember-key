@@ -1,5 +1,6 @@
 package local.rememberkey.ui
 
+import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
@@ -32,9 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.Placeholder
@@ -57,15 +60,31 @@ enum class Layout { RU, EN, SYM1, SYM2 }
 class InputState {
     var buf by mutableStateOf("")
     var show by mutableStateOf(false)
-    var layout by mutableStateOf(Layout.RU)
-    var letters by mutableStateOf(Layout.RU)
+    var layout by mutableStateOf(Layout.EN)
+    var letters by mutableStateOf(Layout.EN)
     var shift by mutableStateOf(false)
+    /** Caps lock: double tap on shift. Stays on across ?123 and RU/EN until shift is tapped again. */
+    var caps by mutableStateOf(false)
     var err by mutableStateOf("")
+    private var shiftAt = 0L
+
+    val upper get() = shift || caps
+
+    /** Shift key: one tap = next letter capital, two quick taps = caps lock, a tap while locked = off. */
+    fun shiftTap(now: Long) {
+        when {
+            caps -> { caps = false; shift = false }
+            shift && now - shiftAt < DOUBLE_TAP_MS -> { caps = true; shift = false }
+            else -> shift = !shift
+        }
+        shiftAt = now
+    }
 
     fun reset(fmt: Fmt) {
         buf = ""
         show = false
         shift = false
+        caps = false
         err = ""
         layout = if (fmt == Fmt.WORDS) Layout.RU else Layout.EN
         letters = layout
@@ -82,6 +101,10 @@ class InputState {
     fun backspace() {
         buf = buf.dropLast(1)
         err = ""
+    }
+
+    private companion object {
+        const val DOUBLE_TAP_MS = 400L
     }
 }
 
@@ -101,27 +124,27 @@ fun masked(fmt: Fmt, buf: String, show: Boolean): String = when (fmt) {
 @Composable
 fun KeyField(input: InputState, fmt: Fmt, placeholder: String) {
     val inline = mapOf(
-        "caret" to InlineTextContent(Placeholder(11.sp, 22.sp, PlaceholderVerticalAlign.TextCenter)) {
-            Box(Modifier.size(11.dp, 22.dp).blink().background(C.acc))
+        "caret" to InlineTextContent(Placeholder(3.sp, 24.sp, PlaceholderVerticalAlign.TextCenter)) {
+            Box(Modifier.size(2.dp, 24.dp).blink().background(C.acc))
         },
     )
-    Box(Modifier.fillMaxWidth().heightIn(min = 100.dp).dashed(C.acc)) {
+    Box(Modifier.fillMaxWidth().heightIn(min = 96.dp).surface(C.surf, R14).border(2.dp, C.acc, R14)) {
         val text = buildAnnotatedString {
-            withStyle(SpanStyle(color = C.acc)) { append("> ") }
             if (input.buf.isEmpty()) {
-                appendInlineContent("caret", "_")
-                withStyle(SpanStyle(color = C.text3, fontSize = 15.sp, fontWeight = FontWeight.Normal)) { append(" $placeholder") }
+                appendInlineContent("caret", "|")
+                withStyle(SpanStyle(color = C.text3, fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = Sans, letterSpacing = 0.sp)) { append(" $placeholder") }
             } else {
-                append(masked(fmt, input.buf, input.show))
-                appendInlineContent("caret", "_")
+                val m = masked(fmt, input.buf, input.show)
+                if (input.show && fmt == Fmt.SYMBOLS) append(symbols(m)) else append(m)
+                appendInlineContent("caret", "|")
             }
         }
         Tx(
-            text, size = 20.sp, weight = FontWeight.Medium, lineHeight = 1.5f, inline = inline,
-            modifier = Modifier.fillMaxWidth().padding(start = 14.dp, top = 14.dp, bottom = 14.dp, end = 54.dp),
+            text, size = 20.sp, weight = FontWeight.Medium, lineHeight = 1.5f, inline = inline, family = Mono, spacing = 0.5.sp,
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 14.dp, bottom = 14.dp, end = 52.dp),
         )
         Box(
-            Modifier.align(Alignment.TopEnd).padding(6.dp).size(44.dp).tap { input.show = !input.show },
+            Modifier.align(Alignment.TopEnd).padding(6.dp).size(44.dp).clip(CircleShape).tap { input.show = !input.show },
             contentAlignment = Alignment.Center,
         ) { Icn(if (input.show) Ic.eyeOff else Ic.eye, C.text2, 22.dp) }
     }
@@ -135,44 +158,45 @@ fun AppKeyboard(input: InputState, fmt: Fmt, enabled: Boolean, onSubmit: () -> U
     val lay = input.layout
     val rows = ROWS.getValue(lay)
     val letters = lay == Layout.RU || lay == Layout.EN
-    val up = input.shift && letters
+    val up = input.upper && letters
     Column(
-        Modifier.fillMaxWidth().background(C.kb).topDashed().padding(start = 3.dp, end = 3.dp, top = 6.dp, bottom = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(7.dp),
+        Modifier.fillMaxWidth().background(C.kb).padding(start = 3.dp, end = 3.dp, top = 8.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(Modifier.fillMaxWidth().height(14.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Icn(Ic.shield, C.text3, 12.dp)
             Tx(" Клавиатура RememberKey: системная ввод не видит", size = 11.sp, color = C.text3, maxLines = 1)
         }
         fun ch(c: Char) = if (up) c.uppercaseChar() else c
-        KbRow {
-            rows[0].forEach { c -> Key(ch(c).toString(), enabled = enabled) { haptic(); input.type(ch(c), fmt) } }
-        }
-        KbRow {
-            rows[1].forEach { c -> Key(ch(c).toString(), enabled = enabled) { haptic(); input.type(ch(c), fmt) } }
-        }
+        KbRow { rows[0].forEach { c -> Key(ch(c).toString(), enabled) { haptic(); input.type(ch(c), fmt) } } }
+        KbRow { rows[1].forEach { c -> Key(ch(c).toString(), enabled) { haptic(); input.type(ch(c), fmt) } } }
         KbRow {
             when (lay) {
-                Layout.RU, Layout.EN -> FnKey(on = input.shift, enabled = enabled, onClick = { haptic(); input.shift = !input.shift }) { Icn(Ic.shift, if (input.shift) Color.Black else C.text2, 20.dp) }
-                Layout.SYM1 -> FnKey(enabled = enabled, onClick = { haptic(); input.layout = Layout.SYM2 }) { Tx("1/2", size = 13.sp, color = C.text2, weight = FontWeight.Bold) }
-                Layout.SYM2 -> FnKey(enabled = enabled, onClick = { haptic(); input.layout = Layout.SYM1 }) { Tx("2/2", size = 13.sp, color = C.text2, weight = FontWeight.Bold) }
+                Layout.RU, Layout.EN -> FnKey(on = input.upper, enabled = enabled, onClick = { haptic(); input.shiftTap(SystemClock.uptimeMillis()) }) {
+                    val tint = if (input.upper) C.onAcc else C.text
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icn(Ic.shift, tint, 20.dp)
+                        // caps lock: a bar under the arrow, like on phone keyboards
+                        if (input.caps) Box(Modifier.padding(top = 2.dp).size(12.dp, 2.dp).background(tint))
+                    }
+                }
+                Layout.SYM1 -> FnKey(enabled = enabled, onClick = { haptic(); input.layout = Layout.SYM2 }) { FnText("1/2") }
+                Layout.SYM2 -> FnKey(enabled = enabled, onClick = { haptic(); input.layout = Layout.SYM1 }) { FnText("2/2") }
             }
-            rows[2].forEach { c -> Key(ch(c).toString(), enabled = enabled) { haptic(); input.type(ch(c), fmt) } }
-            FnKey(enabled = enabled, onClick = { haptic(); input.backspace() }) { Icn(Ic.bksp, C.text2, 22.dp) }
+            rows[2].forEach { c -> Key(ch(c).toString(), enabled) { haptic(); input.type(ch(c), fmt) } }
+            FnKey(enabled = enabled, onClick = { haptic(); input.backspace() }) { Icn(Ic.bksp, C.text, 22.dp) }
         }
         KbRow {
             if (letters) {
-                FnKey(enabled = enabled, onClick = { haptic(); input.layout = Layout.SYM1; input.shift = false }) { Tx("?123", size = 13.sp, color = C.text2, weight = FontWeight.Bold) }
+                FnKey(enabled = enabled, onClick = { haptic(); input.layout = Layout.SYM1; input.shift = false }) { FnText("?123") }
                 FnKey(enabled = enabled, onClick = {
                     haptic()
                     input.layout = if (lay == Layout.RU) Layout.EN else Layout.RU
                     input.letters = input.layout
                     input.shift = false
-                }) { Tx(if (lay == Layout.RU) "EN" else "RU", size = 13.sp, color = C.text2, weight = FontWeight.Bold) }
+                }) { FnText(if (lay == Layout.RU) "EN" else "RU") }
             } else {
-                FnKey(enabled = enabled, onClick = { haptic(); input.layout = input.letters }) {
-                    Tx(if (input.letters == Layout.RU) "АБВ" else "ABC", size = 13.sp, color = C.text2, weight = FontWeight.Bold)
-                }
+                FnKey(enabled = enabled, onClick = { haptic(); input.layout = input.letters }) { FnText(if (input.letters == Layout.RU) "АБВ" else "ABC") }
             }
             val spaceLabel = when {
                 fmt == Fmt.SYMBOLS -> "без пробелов"
@@ -181,21 +205,27 @@ fun AppKeyboard(input: InputState, fmt: Fmt, enabled: Boolean, onSubmit: () -> U
                 else -> "пробел"
             }
             Box(
-                Modifier.weight(5f).height(46.dp).border(1.dp, C.line)
+                Modifier.weight(5f).height(46.dp).keyShape(C.key).alpha(if (fmt == Fmt.WORDS) 1f else 0.55f)
                     .then(if (fmt == Fmt.WORDS && enabled) Modifier.tap { haptic(); input.type(' ', fmt) } else Modifier),
                 contentAlignment = Alignment.Center,
-            ) { Tx(spaceLabel, size = 12.sp, color = C.text3.copy(alpha = if (fmt == Fmt.WORDS) 1f else 0.55f), maxLines = 1) }
+            ) { Tx(spaceLabel, size = 13.sp, color = C.text2, maxLines = 1) }
             Box(
-                Modifier.weight(1.5f).height(46.dp).background(if (enabled) C.acc else C.line).tap(enabled) { haptic(); onSubmit() },
+                Modifier.weight(1.5f).height(46.dp).keyShape(if (enabled) C.acc else C.keyFn).tap(enabled) { haptic(); onSubmit() },
                 contentAlignment = Alignment.Center,
-            ) { Icn(Ic.check, Color.Black, 24.dp) }
+            ) { Icn(Ic.check, if (enabled) C.onAcc else C.text3, 24.dp) }
         }
     }
 }
 
-private fun Modifier.topDashed(): Modifier = drawBehind {
-    drawLine(C.line, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())))
+/** Rounded key with a thin shadow line under it, like a phone keyboard. */
+private fun Modifier.keyShape(color: Color): Modifier = drawBehind {
+    val r = CornerRadius(8.dp.toPx())
+    drawRoundRect(C.keySh, topLeft = Offset(0f, 1.dp.toPx()), size = size, cornerRadius = r)
+    drawRoundRect(color, size = size, cornerRadius = r)
 }
+
+@Composable
+private fun FnText(t: String) = Tx(t, size = 13.sp, color = C.text, weight = FontWeight.SemiBold)
 
 @Composable
 private fun KbRow(content: @Composable RowScope.() -> Unit) = Row(
@@ -209,18 +239,16 @@ private fun RowScope.Key(label: String, enabled: Boolean, onClick: () -> Unit) {
     val src = remember { MutableInteractionSource() }
     val pressed by src.collectIsPressedAsState()
     Box(
-        Modifier.weight(1f).widthIn(max = 38.dp).height(46.dp)
-            .background(if (pressed) C.accS else Color.Transparent)
-            .border(1.dp, if (pressed) C.dash else C.line)
+        Modifier.weight(1f).widthIn(max = 37.dp).height(46.dp).keyShape(if (pressed) C.accS else C.key)
             .clickable(src, null, enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Tx(label, size = 18.sp, color = if (pressed) C.acc else C.text2) }
+    ) { Tx(label, size = 19.sp, color = if (pressed) C.acc else C.text) }
 }
 
 @Composable
 private fun RowScope.FnKey(on: Boolean = false, enabled: Boolean, onClick: () -> Unit, content: @Composable () -> Unit) {
     Box(
-        Modifier.weight(1.5f).height(46.dp).background(if (on) C.acc else C.accS).border(1.dp, C.line).tap(enabled, onClick),
+        Modifier.weight(1.5f).height(46.dp).keyShape(if (on) C.acc else C.keyFn).tap(enabled, onClick),
         contentAlignment = Alignment.Center,
     ) { content() }
 }
@@ -235,8 +263,8 @@ fun PinDots(count: Int, bad: Boolean, shake: Int) {
     }
     Row(Modifier.offset { IntOffset(dx.value.dp.roundToPx(), 0) }.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         repeat(PinGuard.LENGTH) { i ->
-            val m = Modifier.size(16.dp)
-            if (i < count) Box(m.background(C.acc)) else Box(m.border(1.dp, if (bad) C.red else C.text3))
+            val m = Modifier.size(14.dp).clip(CircleShape)
+            if (i < count) Box(m.background(C.acc)) else Box(m.border(2.dp, if (bad) C.red else C.line2, CircleShape))
         }
     }
 }
@@ -247,16 +275,17 @@ fun PinPad(enabled: Boolean, onDigit: (Char) -> Unit, onBack: () -> Unit) {
     Column(
         Modifier.fillMaxWidth().alpha(if (enabled) 1f else 0.4f).padding(top = 6.dp, bottom = 22.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         for (row in listOf("123", "456", "789", " 0<")) {
-            Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
                 row.forEach { c ->
                     when (c) {
-                        ' ' -> Box(Modifier.size(84.dp, 72.dp))
-                        '<' -> Box(Modifier.size(84.dp, 72.dp).tap(enabled) { view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP); onBack() }, contentAlignment = Alignment.Center) {
-                            Icn(Ic.bksp, C.text2, 26.dp)
-                        }
+                        ' ' -> Box(Modifier.size(76.dp))
+                        '<' -> Box(
+                            Modifier.size(76.dp).clip(CircleShape).tap(enabled) { view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP); onBack() },
+                            contentAlignment = Alignment.Center,
+                        ) { Icn(Ic.bksp, C.text2, 26.dp) }
                         else -> PinKey(c, enabled) { view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP); onDigit(c) }
                     }
                 }
@@ -270,10 +299,9 @@ private fun PinKey(c: Char, enabled: Boolean, onClick: () -> Unit) {
     val src = remember { MutableInteractionSource() }
     val pressed by src.collectIsPressedAsState()
     Box(
-        Modifier.size(84.dp, 72.dp).background(if (pressed) C.accS else Color.Transparent)
-            .border(1.dp, if (pressed) C.acc else C.line).clickable(src, null, enabled, onClick = onClick),
+        Modifier.size(76.dp).clip(CircleShape).background(if (pressed) C.surf2 else C.surf).clickable(src, null, enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Tx(c.toString(), size = 28.sp, color = if (pressed) C.acc else C.text) }
+    ) { Tx(c.toString(), size = 28.sp, weight = FontWeight.Medium) }
 }
 
 @Composable

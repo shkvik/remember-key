@@ -5,26 +5,31 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +38,9 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun RkRoot(vm: AppVm) {
+    // dark or light, as the phone is set
+    val dark = isSystemInDarkTheme()
+    SideEffect { C.p = if (dark) DarkPalette else LightPalette }
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     LaunchedEffect(vm.askNotifications) {
         if (vm.askNotifications) {
@@ -44,8 +52,8 @@ fun RkRoot(vm: AppVm) {
     var journalFilter by rememberSaveable { mutableStateOf("all") }
 
     ProvideBlink {
-        Box(Modifier.fillMaxSize().background(C.bg).scanlines()) {
-            Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+        Box(Modifier.fillMaxSize().background(C.bg)) {
+            Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)).imePadding()) {
                 when (val s = vm.screen) {
                     Scr.Home -> HomeScreen(vm)
                     Scr.Journal -> JournalScreen(vm, journalFilter) { journalFilter = it }
@@ -65,6 +73,7 @@ fun RkRoot(vm: AppVm) {
                     Scr.Add3 -> Add3Screen(vm)
                     is Scr.Added -> AddedScreen(vm, s.id)
                     is Scr.Learn -> LearnScreen(vm, s.id)
+                    is Scr.Lesson -> LessonScreen(vm, s.id)
                     is Scr.Learned -> LearnedScreen(vm, s.id)
                 }
                 vm.toast?.let { t ->
@@ -73,9 +82,9 @@ fun RkRoot(vm: AppVm) {
                         vm.clearToast(t)
                     }
                     Tx(
-                        "> ${t.text}", size = 13.5.sp, color = C.acc, maxLines = 2,
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp, start = 24.dp, end = 24.dp)
-                            .background(Color.Black).border(1.dp, C.acc).padding(horizontal = 14.dp, vertical = 8.dp),
+                        t.text, size = 14.sp, color = C.onToast, weight = FontWeight.Medium, maxLines = 2,
+                        modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 96.dp, start = 24.dp, end = 24.dp)
+                            .clip(Pill).background(C.toast).padding(horizontal = 18.dp, vertical = 10.dp),
                     )
                 }
                 vm.confirm?.let { c -> ConfirmSheet(c) { vm.confirm = null } }
@@ -87,14 +96,14 @@ fun RkRoot(vm: AppVm) {
 @Composable
 private fun ConfirmSheet(c: Confirm, close: () -> Unit) {
     BackHandler { close() }
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.75f)).tap(onClick = close), contentAlignment = Alignment.BottomCenter) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)).tap(onClick = close), contentAlignment = Alignment.BottomCenter) {
         Column(
-            Modifier.fillMaxWidth().background(C.sheet).drawBehind { drawLine(C.acc, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx()) }
-                .tap { }.padding(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 20.dp),
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(C.surf)
+                .tap { }.navigationBarsPadding().padding(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Tx(c.title, size = 19.sp, weight = FontWeight.Bold)
-            Tx(c.text, size = 13.5.sp, color = C.text2)
+            Tx(c.title, size = 20.sp, weight = FontWeight.SemiBold)
+            Tx(c.text, size = 14.sp, color = C.text2)
             TBtn(c.button, Kind.RED) {
                 close()
                 c.onYes()

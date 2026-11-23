@@ -19,9 +19,12 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.RK">
 
+        <!-- configChanges: switching dark/light or font size must not recreate the activity —
+             a recreate stops it, and a stop closes an open copy and drops a lesson in progress -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="uiMode|fontScale|density|screenSize|smallestScreenSize|screenLayout|orientation|keyboard|keyboardHidden|navigation|locale|layoutDirection"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">

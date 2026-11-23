@@ -60,6 +60,8 @@ object Codec {
         .put("verifier", JSONObject().put("salt", b64(k.verifier.salt)).put("mac", b64(k.verifier.mac)).put("argon", argon(k.verifier.argon)))
         .put("copy", k.copy?.let { JSONObject().put("alias", it.alias).put("ivBio", b64(it.ivBio)).put("iv", b64(it.iv)).put("box", b64(it.box)) } ?: JSONObject.NULL)
         .put("copyLost", k.copyLost)
+        .put("blocks", JSONArray(k.blocks.map { h -> h.joinToString("") { if (it) "1" else "0" } }))
+        .put("lessonBlock", k.lessonBlock)
 
     private fun key(o: JSONObject): KeyRec {
         val ver = o.getJSONObject("verifier")
@@ -80,6 +82,8 @@ object Codec {
             verifier = Verifier(ver.bytes("salt"), ver.bytes("mac"), argon(ver.getJSONObject("argon"))),
             copy = o.optJSONObject("copy")?.let { Copy(it.getString("alias"), it.bytes("ivBio"), it.bytes("iv"), it.bytes("box")) },
             copyLost = o.optBoolean("copyLost"),
+            blocks = o.optJSONArray("blocks")?.let { a -> (0 until a.length()).map { i -> a.getString(i).map { it == '1' } } } ?: emptyList(),
+            lessonBlock = o.optInt("lessonBlock"),
         )
     }
 

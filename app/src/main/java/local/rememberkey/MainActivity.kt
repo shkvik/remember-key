@@ -1,12 +1,10 @@
 package local.rememberkey
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -26,7 +24,7 @@ class MainActivity : ComponentActivity() {
         }
         // other apps' floating windows are hidden while RememberKey is on screen (fake overlays, tapjacking)
         window.setHideOverlayWindows(true)
-        enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
+        enableEdgeToEdge() // status bar icons follow the dark or light theme of the phone
         super.onCreate(savedInstanceState)
         vm.prompter = BioPrompter(this)
         setContent { RkRoot(vm) }

@@ -21,6 +21,30 @@ object Schedule {
         else "Проверка ${level + 1} из $CHECKS · интервал ${Ru.days(interval(level))}"
 }
 
+/** How well each block of 4 symbols is remembered, from the latest entries from memory. */
+enum class Strength(val title: String) {
+    GOOD("помню хорошо"), MID("бывают ошибки"), BAD("помню плохо"), NEW("ещё не учили")
+}
+
+object Blocks {
+    /** entries kept per block */
+    const val KEEP = 20
+
+    /** shown and judged */
+    const val RECENT = 5
+
+    fun strength(h: List<Boolean>): Strength {
+        val last = h.takeLast(RECENT)
+        if (last.isEmpty()) return Strength.NEW
+        val bad = last.count { !it }
+        return when {
+            bad == 0 && last.size >= 3 -> Strength.GOOD
+            bad >= 2 -> Strength.BAD
+            else -> Strength.MID
+        }
+    }
+}
+
 /** Wrong app PIN: nothing is ever erased, the phone only makes you wait. */
 object PinGuard {
     /** The app PIN has exactly this many digits. */

@@ -1,6 +1,7 @@
 package local.rememberkey.ui
 
 import android.app.Application
+import android.content.ClipboardManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -36,9 +37,10 @@ import local.rememberkey.sec.BioResult
 import local.rememberkey.sec.PhoneCheck
 
 enum class Mode(val title: String) { CHECK("Проверка"), PRACTICE("Тренировка"), RELEARN("Повтор"), RESTORE("Восстановление") }
-enum class PinFor { PEEK, LEARN, ADD, RESTORE, DELETE, CHANGE }
+enum class PinFor { PEEK, LEARN, BLOCK, ADD, RESTORE, DELETE, CHANGE }
 enum class RKind { OK, FAIL, RESTORED }
 enum class Phase { SHOW, RECALL, WRONG }
+enum class Stage { HINT, RECALL, WRONG, FINAL }
 private enum class How { PUSH, REPLACE, ROOT }
 
 sealed interface Scr {
@@ -52,7 +54,7 @@ sealed interface Scr {
     data class Key(val id: String) : Scr
     data class Check(val id: String, val mode: Mode, val attempt: Int = 1) : Scr
     data class Result(val id: String, val kind: RKind, val mode: Mode, val attempt: Int) : Scr
-    data class Pin(val purpose: PinFor, val id: String?) : Scr
+    data class Pin(val purpose: PinFor, val id: String?, val block: Int = -1) : Scr
     data class Peek(val id: String) : Scr
     data class Lost(val id: String) : Scr
     data object Add1 : Scr
@@ -60,17 +62,33 @@ sealed interface Scr {
     data object Add3 : Scr
     data class Added(val id: String) : Scr
     data class Learn(val id: String) : Scr
+    data class Lesson(val id: String) : Scr
     data class Learned(val id: String) : Scr
 }
 
 class NewKey(val name: String, val fmt: Fmt) {
     var first = ""
     var secret = ""
+
+    /** came from the clipboard: no typos, so no second entry */
+    var pasted by mutableStateOf(false)
 }
 
 /** The key in memory while it is being learned: shown freely until "learned". */
 class LearnSt(val id: String, val fmt: Fmt, val secret: String) {
     var phase by mutableStateOf(Phase.SHOW)
+    var round by mutableIntStateOf(1)
+    var wrong by mutableStateOf("")
+}
+
+/**
+ * Block lessons for a key of symbols, or practice of one block ([solo]): each block 3 times with the hint in view,
+ * then 3 times from memory; after the last block the whole key 3 times. [block] null = the whole-key round.
+ */
+class LessonSt(val id: String, val secret: String, val solo: Boolean, block: Int?, val logId: Long = 0) {
+    val parts = KeyText.chunks(Fmt.SYMBOLS, secret)
+    var block by mutableStateOf(block)
+    var stage by mutableStateOf(if (block == null) Stage.FINAL else Stage.HINT)
     var round by mutableIntStateOf(1)
     var wrong by mutableStateOf("")
 }
@@ -137,6 +155,8 @@ class AppVm(app: Application) : AndroidViewModel(app) {
     private var newKey: NewKey? = null
     var learn by mutableStateOf<LearnSt?>(null)
         private set
+    var lesson by mutableStateOf<LessonSt?>(null)
+        private set
     var peek by mutableStateOf<PeekSt?>(null)
         private set
     var round by mutableIntStateOf(1)
@@ -180,6 +200,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
 
     fun newKeyName(): String = newKey?.name ?: ""
     fun newKeyFmt(): Fmt? = newKey?.fmt
+    fun newKeyPasted(): Boolean = newKey?.pasted ?: false
 
     fun showToast(text: String) {
         toast = Toast(text)
@@ -254,6 +275,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
         // secrets live only as long as their screens
         if (s !is Scr.Peek) peek = null
         if (s !is Scr.Learn && s !is Scr.Added && s !is Scr.Pin) learn = null
+        if (s !is Scr.Lesson && s !is Scr.Added && s !is Scr.Pin) lesson = null
         if (s == Scr.Home || s == Scr.Journal || s == Scr.Security) {
             newKey = null
             restoreSecret = null
@@ -272,6 +294,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
             is Scr.Check -> data.key(s.id)?.let { input.reset(it.fmt) }
             Scr.Add2, Scr.Add3 -> newKey?.let { input.reset(it.fmt) }
             is Scr.Learn -> learn?.let { input.reset(it.fmt) }
+            is Scr.Lesson -> lesson?.let { lessonInput(it) }
             is Scr.PinSet -> {
                 pinStep = 1
                 pinFirst = ""
@@ -333,10 +356,10 @@ class AppVm(app: Application) : AndroidViewModel(app) {
     private fun leaveSecrets() {
         if (peek != null) peekDone()
         pinBuf = ""
-        val holdsSecret = learn != null || newKey != null || restoreSecret != null || changeOldKey != null ||
+        val holdsSecret = learn != null || lesson != null || newKey != null || restoreSecret != null || changeOldKey != null ||
             lastWrong != null || input.buf.isNotEmpty()
         if (holdsSecret) {
-            input.reset(Fmt.WORDS)
+            input.reset(Fmt.SYMBOLS)
             go(Scr.Home, How.ROOT)
         }
     }
@@ -355,6 +378,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
     }
 
     fun continueLearn(id: String) {
+        if (lesson?.id == id) return go(Scr.Lesson(id))
         if (learn?.id == id) return go(Scr.Learn(id))
         go(Scr.Pin(PinFor.LEARN, id))
     }
@@ -413,7 +437,32 @@ class AppVm(app: Application) : AndroidViewModel(app) {
     }
 
     fun startLearnAfterAdd(id: String) {
-        if (learn?.id == id) go(Scr.Learn(id), How.REPLACE) else continueLearn(id)
+        when (id) {
+            lesson?.id -> go(Scr.Lesson(id), How.REPLACE)
+            learn?.id -> go(Scr.Learn(id), How.REPLACE)
+            else -> continueLearn(id)
+        }
+    }
+
+    /** Only when adding a key; read on tap, then the clipboard is cleared. Checks and lessons never accept a paste. */
+    fun paste() {
+        val n = newKey ?: return
+        val cm = ctx.getSystemService(ClipboardManager::class.java)
+        val text = cm.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(ctx)?.toString().orEmpty()
+        val clean = KeyText.clean(n.fmt, text).take(KeyText.MAX_LEN)
+        if (clean.isEmpty()) return showToast("В буфере обмена нет текста")
+        runCatching { cm.clearPrimaryClip() }
+        input.buf = clean
+        input.show = false
+        input.err = ""
+        n.pasted = true
+        showToast("Вставлено · буфер обмена очищен")
+    }
+
+    fun startBlockPractice(id: String, block: Int) {
+        val k = data.key(id) ?: return
+        if (!k.hasCopy) return go(Scr.Lost(id))
+        go(Scr.Pin(PinFor.BLOCK, id, block))
     }
 
     // ---------- typing ----------
@@ -423,9 +472,14 @@ class AppVm(app: Application) : AndroidViewModel(app) {
         when (val s = screen) {
             is Scr.Check -> submitCheck(s)
             is Scr.Learn -> submitLearn()
+            is Scr.Lesson -> submitLesson()
             Scr.Add2 -> {
                 val n = newKey ?: return
                 n.first = input.buf
+                if (n.pasted) {
+                    n.secret = KeyText.clean(n.fmt, input.buf)
+                    return go(Scr.Pin(PinFor.ADD, null))
+                }
                 go(Scr.Add3)
             }
             Scr.Add3 -> {
@@ -521,6 +575,131 @@ class AppVm(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // ---------- block lessons ----------
+
+    private fun lessonInput(l: LessonSt) {
+        input.reset(Fmt.SYMBOLS)
+        if (l.stage == Stage.HINT) input.show = true // copying from the hint is easier when the typed text is visible
+    }
+
+    private fun newLesson(k: KeyRec, secret: String): LessonSt {
+        val parts = KeyText.chunks(Fmt.SYMBOLS, secret).size
+        return LessonSt(k.id, secret, solo = false, block = k.lessonBlock.takeIf { it < parts }?.coerceAtLeast(0))
+    }
+
+    private fun recordBlocks(id: String, results: Map<Int, Boolean>) {
+        viewModelScope.launch {
+            try {
+                bg { vault.blockResults(id, results) }
+            } catch (e: Exception) {
+                Log.e("RememberKey", "block stats failed", e)
+            }
+            sync()
+        }
+    }
+
+    fun lessonRetry() {
+        val l = lesson ?: return
+        l.stage = if (l.block == null) Stage.FINAL else Stage.RECALL
+        l.round = 1
+        lessonInput(l)
+    }
+
+    /** Looking at the hint during "from memory" counts as a miss for that block. */
+    fun lessonHint() {
+        val l = lesson ?: return
+        val b = l.block ?: return
+        recordBlocks(l.id, mapOf(b to false))
+        l.stage = Stage.HINT
+        l.round = 1
+        lessonInput(l)
+    }
+
+    private fun submitLesson() {
+        val l = lesson ?: return
+        val typed = input.buf
+        val fmt = Fmt.SYMBOLS
+        if (l.stage == Stage.FINAL) {
+            val mine = KeyText.chunks(fmt, typed)
+            recordBlocks(l.id, l.parts.indices.associateWith { j -> mine.getOrNull(j)?.let { KeyText.same(fmt, it, l.parts[j]) } ?: false })
+            if (!KeyText.same(fmt, typed, l.secret)) {
+                l.wrong = typed
+                l.stage = Stage.WRONG
+                l.round = 1
+                return
+            }
+            if (l.round < 3) {
+                l.round++
+                lessonInput(l)
+                return showToast("Верно! Весь ключ ${l.round} из 3")
+            }
+            work("Сохраняем…") {
+                bg {
+                    vault.lessonProgress(l.id, l.parts.size)
+                    vault.learned(l.id)
+                }
+                lesson = null
+                go(Scr.Learned(l.id), How.ROOT)
+            }
+            return
+        }
+        val b = l.block ?: return
+        val ok = KeyText.same(fmt, typed, l.parts[b])
+        if (l.stage == Stage.HINT) {
+            if (!ok) {
+                input.buf = ""
+                input.err = "Не совпало с подсказкой — сверьте каждый символ."
+                return
+            }
+            if (l.round < 3) {
+                l.round++
+                lessonInput(l)
+                return showToast("Верно! С подсказкой ${l.round} из 3")
+            }
+            l.stage = Stage.RECALL
+            l.round = 1
+            lessonInput(l)
+            return showToast("Теперь без подсказки")
+        }
+        recordBlocks(l.id, mapOf(b to ok))
+        if (!ok) {
+            l.wrong = typed
+            l.stage = Stage.WRONG
+            return
+        }
+        if (l.round < 3) {
+            l.round++
+            lessonInput(l)
+            return showToast("Верно! По памяти ${l.round} из 3")
+        }
+        if (l.solo) {
+            viewModelScope.launch {
+                bg { vault.blockPracticeDone(l.logId) }
+                sync()
+            }
+            lesson = null
+            showToast("Блок ${b + 1} натренирован")
+            return back()
+        }
+        viewModelScope.launch {
+            bg { vault.lessonProgress(l.id, b + 1) }
+            sync()
+        }
+        if (b + 1 < l.parts.size) {
+            l.block = b + 1
+            l.stage = Stage.HINT
+            l.round = 1
+            lessonInput(l)
+            showToast("Блок ${b + 1} выучен. Дальше блок ${b + 2}")
+        } else {
+            l.block = null
+            l.stage = Stage.FINAL
+            l.round = 1
+            lessonInput(l)
+            showToast("Все блоки выучены. Теперь весь ключ")
+        }
+    }
+
     // ---------- PIN ----------
 
     fun pinLocked(): Boolean = pinWaitUntil > SystemClock.elapsedRealtime()
@@ -607,6 +786,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
         return when (s.purpose) {
             PinFor.PEEK -> "Подсмотр · $name"
             PinFor.LEARN -> "Заучивание · $name"
+            PinFor.BLOCK -> "Блок ${s.block + 1} · $name"
             PinFor.ADD -> "Новый ключ · $name"
             PinFor.RESTORE -> "Восстановление · $name"
             PinFor.DELETE -> "Удаление · $name"
@@ -647,7 +827,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
 
     private suspend fun afterPin(s: Scr.Pin, key: ByteArray) {
         when (s.purpose) {
-            PinFor.PEEK, PinFor.LEARN -> openSecret(s, key)
+            PinFor.PEEK, PinFor.LEARN, PinFor.BLOCK -> openSecret(s, key)
             PinFor.ADD -> saveNew(s, key)
             PinFor.RESTORE -> saveRestore(s, key)
             PinFor.DELETE -> deleteKey(s)
@@ -675,7 +855,11 @@ class AppVm(app: Application) : AndroidViewModel(app) {
             bg { vault.markLost(listOf(id)) } // the chip key itself is kept, see copiesChecked
             return go(Scr.Lost(id), How.REPLACE)
         }
-        val sub = if (s.purpose == PinFor.PEEK) "Откроется копия: ${k.name}" else "Откроется ${k.name}, чтобы продолжить заучивание"
+        val sub = when (s.purpose) {
+            PinFor.PEEK -> "Откроется копия: ${k.name}"
+            PinFor.BLOCK -> "Откроется блок ${s.block + 1} ключа ${k.name} — для тренировки"
+            else -> "Откроется ${k.name}, чтобы продолжить заучивание"
+        }
         busy = "Ждём отпечаток…"
         val r = prompter().auth("Подтвердите, что это вы", sub, cipher)
         if (r != BioResult.Ok) return bioStopped(r)
@@ -686,15 +870,28 @@ class AppVm(app: Application) : AndroidViewModel(app) {
         }
         val secret = String(plain, Charsets.UTF_8)
         Crypto.wipe(plain, inner)
-        if (s.purpose == PinFor.PEEK) {
-            val logId = bg { vault.peekOpened(id) }
-            peek = PeekSt(id, k.fmt, secret, peekLast, logId)
-            peekLast = null
-            go(Scr.Peek(id), How.REPLACE)
-        } else {
-            bg { vault.learnReopened(id) }
-            learn = LearnSt(id, k.fmt, secret)
-            go(Scr.Learn(id), How.REPLACE)
+        when {
+            s.purpose == PinFor.PEEK -> {
+                val logId = bg { vault.peekOpened(id) }
+                peek = PeekSt(id, k.fmt, secret, peekLast, logId)
+                peekLast = null
+                go(Scr.Peek(id), How.REPLACE)
+            }
+            s.purpose == PinFor.BLOCK -> {
+                val logId = bg { vault.blockPracticeOpened(id, s.block) }
+                lesson = LessonSt(id, secret, solo = true, block = s.block, logId = logId)
+                go(Scr.Lesson(id), How.REPLACE)
+            }
+            k.fmt == Fmt.SYMBOLS -> {
+                bg { vault.learnReopened(id) }
+                lesson = newLesson(k, secret)
+                go(Scr.Lesson(id), How.REPLACE)
+            }
+            else -> {
+                bg { vault.learnReopened(id) }
+                learn = LearnSt(id, k.fmt, secret)
+                go(Scr.Learn(id), How.REPLACE)
+            }
         }
     }
 
@@ -742,7 +939,7 @@ class AppVm(app: Application) : AndroidViewModel(app) {
         }
         newKey = null
         if (!foreground) return go(Scr.Home, How.ROOT) // saved; learning continues later with PIN and finger
-        learn = LearnSt(k.id, k.fmt, n.secret)
+        if (k.fmt == Fmt.SYMBOLS) lesson = newLesson(k, n.secret) else learn = LearnSt(k.id, k.fmt, n.secret)
         go(Scr.Added(k.id), How.ROOT)
     }
 
@@ -809,12 +1006,23 @@ class AppVm(app: Application) : AndroidViewModel(app) {
 
     fun peekWhere() {
         val p = peek ?: return
-        if (!p.where) reveal(p, peekLevels(p, where = true)) { p.where = true }
+        if (!p.where) reveal(p, peekLevels(p, where = true)) {
+            p.where = true
+            val last = p.last
+            if (p.fmt == Fmt.SYMBOLS && last != null) {
+                val real = KeyText.chunks(p.fmt, p.secret)
+                val wrong = KeyText.wrongParts(p.fmt, p.secret, last)
+                recordBlocks(p.id, real.indices.associateWith { !wrong[it] })
+            }
+        }
     }
 
     fun peekPart(i: Int) {
         val p = peek ?: return
-        if (i !in p.open) reveal(p, peekLevels(p, open = p.open + i)) { p.open += i }
+        if (i !in p.open) reveal(p, peekLevels(p, open = p.open + i)) {
+            p.open += i
+            if (p.fmt == Fmt.SYMBOLS) recordBlocks(p.id, mapOf(i to false))
+        }
     }
 
     fun peekFull() {

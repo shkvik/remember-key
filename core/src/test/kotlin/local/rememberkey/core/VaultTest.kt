@@ -268,6 +268,37 @@ class VaultTest {
     }
 
     @Test
+    fun blockStatsAndLessonProgress() {
+        vault.setPin(pin)
+        val k = add("Tq7#mV2!pR9xLk4&Zw8$", Fmt.SYMBOLS, "bio.s")
+        assertEquals(5, k.blocks.size)
+        assertEquals(Strength.NEW, Blocks.strength(k.blocks[0]))
+        repeat(3) { vault.blockResults("A", mapOf(0 to true, 2 to false)) }
+        vault.blockResults("A", mapOf(2 to true))
+        vault.lessonProgress("A", 3)
+        reopen()
+        val r = vault.data.key("A")!!
+        assertEquals(Strength.GOOD, Blocks.strength(r.blocks[0]))
+        assertEquals(Strength.BAD, Blocks.strength(r.blocks[2]))
+        assertEquals(Strength.NEW, Blocks.strength(r.blocks[1]))
+        assertEquals(3, r.lessonBlock)
+        repeat(30) { vault.blockResults("A", mapOf(4 to true)) }
+        assertEquals(Blocks.KEEP, vault.data.key("A")!!.blocks[4].size)
+        val logId = vault.blockPracticeOpened("A", 2)
+        vault.blockPracticeDone(logId)
+        assertEquals("Тренировка блока 3 · Мой ключ", vault.data.log.last().title)
+        assertEquals(0, vault.data.key("A")!!.peeks) // practice is not a peek
+    }
+
+    @Test
+    fun strengthRules() {
+        assertEquals(Strength.MID, Blocks.strength(listOf(true)))
+        assertEquals(Strength.GOOD, Blocks.strength(listOf(false, false, true, true, true, true, true)))
+        assertEquals(Strength.MID, Blocks.strength(listOf(true, false, true, true, true)))
+        assertEquals(Strength.BAD, Blocks.strength(listOf(false, true, false)))
+    }
+
+    @Test
     fun lettersAreReusedAndLimited() {
         vault.setPin(pin)
         repeat(10) { add(alias = "bio.$it") }

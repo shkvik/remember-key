@@ -48,6 +48,10 @@ data class KeyRec(
      * glitch, the next check finds the key working again. A restore replaces the copy.
      */
     val copyLost: Boolean = false,
+    /** Per block of 4 symbols: the latest entries from memory (true — right), newest last, at most [Blocks.KEEP]. */
+    val blocks: List<List<Boolean>> = emptyList(),
+    /** Block lessons: how many blocks are learned; == parts means only the whole-key round is left. */
+    val lessonBlock: Int = 0,
 ) {
     /** Can be opened with PIN + finger right now. */
     val hasCopy: Boolean get() = copy != null && !copyLost

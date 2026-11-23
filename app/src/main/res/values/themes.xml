@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- dark from the very first frame, no white flash before Compose draws -->
+    <!-- the app background from the very first frame (light or dark, see values-night), no flash before Compose draws -->
     <style name="Theme.RK" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/rk_bg</item>
         <item name="android:colorBackground">@color/rk_bg</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>

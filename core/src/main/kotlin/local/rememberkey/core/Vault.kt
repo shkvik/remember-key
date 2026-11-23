@@ -227,6 +227,7 @@ class Vault(
                 due = today,
                 verifier = newVerifier(fmt, clean),
                 copy = sealCopy(pinKey, alias, ivBio, bioBox),
+                blocks = if (fmt == Fmt.SYMBOLS) List(KeyText.chunks(fmt, clean).size) { emptyList() } else emptyList(),
             )
             commit(log(data.copy(keys = data.keys + k), Ev.ADD, "Добавлен · ${k.name}", "${KeyText.sizeText(fmt, k.size)} · хеш и зашифрованная копия"))
             k
@@ -306,6 +307,40 @@ class Vault(
 
     fun learnReopened(id: String) {
         change(id) { k, d, _ -> k to log(d, Ev.PEEK, "Заучивание · ${k.name}", "Открыт по PIN и отпечатку, чтобы продолжить заучивание") }
+    }
+
+    // ---------- blocks ----------
+
+    /** Entries from memory per block (index → right?), from lessons, block practice and peeks. */
+    fun blockResults(id: String, results: Map<Int, Boolean>) {
+        if (results.isEmpty()) return
+        change(id) { k, d, _ ->
+            val parts = maxOf(k.parts, k.blocks.size)
+            val blocks = List(parts) { i ->
+                val h = k.blocks.getOrElse(i) { emptyList() }
+                results[i]?.let { (h + it).takeLast(Blocks.KEEP) } ?: h
+            }
+            k.copy(blocks = blocks) to d
+        }
+    }
+
+    /** Block lessons: [learned] blocks are done; the next lesson starts there. */
+    fun lessonProgress(id: String, learned: Int) {
+        change(id) { k, d, _ -> k.copy(lessonBlock = learned.coerceIn(0, k.parts)) to d }
+    }
+
+    /** Practicing one block opens the copy: journaled like learning, the schedule stays. Returns the entry id. */
+    fun blockPracticeOpened(id: String, block: Int): Long {
+        var logId = 0L
+        change(id) { k, d, _ ->
+            logId = d.nextLogId
+            k to log(d, Ev.LEARN, "Тренировка блока ${block + 1} · ${k.name}", "PIN и отпечаток · начата")
+        }
+        return logId
+    }
+
+    fun blockPracticeDone(logId: Long): Unit = synchronized(lock) {
+        commit(data.copy(log = data.log.map { if (it.id == logId) it.copy(sub = "3 раза с подсказкой, 3 по памяти · расписание не меняется") else it }))
     }
 
     // ---------- peek ----------

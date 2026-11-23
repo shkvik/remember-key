@@ -1,61 +1,77 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RememberKey — прототип</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!--
   Кликабельный прототип RememberKey. 1 px = 1 dp, экран 412 × 915 — как у ASUS ROG Phone 9 Pro.
   Ключи и PIN в прототипе — демонстрационные. В приложении проверка идёт по хешу,
   а копия расшифровывается только после PIN приложения и отпечатка.
 -->
 <style>
-/* Оформление «Терминал» (вариант 3 из styles.html): зелёный моноширинный текст на чёрном, пунктирные рамки, [ кнопки ] */
-:root {
-  --page: #010201; --bg: #040704; --panel: #061006; --panel2: #0a160b; --panel3: #163019; --line: #1d4021; --dash: #2a6b30;
-  --text: #c6f8c2; --text2: #86d982; --text3: #4d8a4a;
-  --acc: #3dff6e; --accS: #0d2a12; --amber: #ffcf3d; --amberS: #2a230a; --red: #ff5f5f; --redS: #2a0d0d;
-  --blue: #5fd7ff; --blueS: #08222a;
-  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+/* Оформление «Сейф»: в духе менеджеров паролей — крупный заголовок, карточки-списки на сером фоне, синий акцент, тёмная и светлая темы */
+:root, [data-theme="dark"] {
+  --page: #0b0d11; --bg: #1b1f27; --surf: #262b35; --surf2: #313744; --line: #353c4a; --line2: #4a5262;
+  --text: #e6e9ef; --text2: #a9b1c1; --text3: #7d8697;
+  --acc: #7aa7f5; --accS: rgba(122,167,245,.16); --onacc: #0d1b33;
+  --ok: #5fc98c; --okS: rgba(95,201,140,.16); --amber: #f0c24b; --amberS: rgba(240,194,75,.15); --onamber: #2b2000;
+  --red: #f2857a; --redS: rgba(242,133,122,.15); --vio: #b39cf5; --vioS: rgba(179,156,245,.16);
+  --kb: #141820; --key: #363c4a; --keyfn: #272c37; --keysh: #0b0d11;
+  --toast: #e6e9ef; --ontoast: #1b1f27; --frame: #050608;
+  --dg: #7aa7f5; --sy: #f2857a;
 }
+[data-theme="light"] {
+  --page: #e3e8ef; --bg: #f2f5f9; --surf: #ffffff; --surf2: #eef1f6; --line: #e4e8ef; --line2: #cfd5df;
+  --text: #1a1d23; --text2: #5b6372; --text3: #8a92a1;
+  --acc: #175ddc; --accS: #e2ebfb; --onacc: #ffffff;
+  --ok: #0b8a4a; --okS: #e1f4ea; --amber: #a86a00; --amberS: #fdf1d8; --onamber: #ffffff;
+  --red: #c8332a; --redS: #fde6e4; --vio: #6a4bd1; --vioS: #ece7fb;
+  --kb: #d7dce5; --key: #ffffff; --keyfn: #bfc6d3; --keysh: #9aa3b3;
+  --toast: #1f232b; --ontoast: #ffffff; --frame: #1a1c20;
+  --dg: #175ddc; --sy: #c8332a;
+}
+:root { --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --mono: "Roboto Mono", ui-monospace, Consolas, monospace; }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 var(--mono); }
-.top { position: sticky; top: 0; z-index: 10; display: flex; gap: 16px; align-items: center; padding: 12px 20px; background: #000; border-bottom: 1px dashed var(--dash); }
-.top h1 { font-size: 16px; margin: 0; color: var(--acc); }
-.top h1::before { content: "$ "; color: var(--text3); }
+body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.45 var(--font); }
+.top { position: sticky; top: 0; z-index: 10; display: flex; gap: 16px; align-items: center; padding: 12px 20px; background: var(--page); border-bottom: 1px solid var(--line); }
+.top h1 { font-size: 16px; margin: 0; font-weight: 700; }
 .top .sp { flex: 1; }
 .top label { font-size: 13px; color: var(--text2); display: flex; gap: 8px; align-items: center; }
-.top select { background: #000; color: var(--text); border: 1px solid var(--dash); border-radius: 0; padding: 4px 6px; font: 13px var(--mono); }
+.top select { background: var(--surf); color: var(--text); border: 1px solid var(--line2); border-radius: 8px; padding: 4px 8px; font: 13px var(--font); }
+.seg { display: flex; background: var(--surf2); border-radius: 999px; padding: 3px; }
+.seg button { border: 0; background: transparent; color: var(--text2); font: 500 13px var(--font); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.seg button.on { background: var(--surf); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .proto { display: flex; gap: 32px; padding: 20px; align-items: flex-start; flex-wrap: wrap; }
 .stage { zoom: var(--z, 0.9); }
-@keyframes blink { 50% { opacity: 0; } }
+@keyframes blink { 50% { opacity: .25; } }
 
 /* ---------- телефон ---------- */
-.phone { box-sizing: content-box; width: 412px; height: 915px; border-radius: 36px; overflow: hidden; border: 10px solid #050506; background: var(--bg); display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 50px #000, 0 0 0 1px #1a2a1b, 0 0 40px rgba(61,255,110,.06); user-select: none; }
-.phone::after { content: ""; position: absolute; inset: 0; z-index: 45; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px); }
-.status { height: 32px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 13px; color: var(--text2); }
+.phone { box-sizing: content-box; width: 412px; height: 915px; border-radius: 44px; overflow: hidden; border: 10px solid var(--frame); background: var(--bg); display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.35); user-select: none; }
+.status { height: 32px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 13px; font-weight: 600; color: var(--text); }
 .status .si { display: flex; gap: 6px; align-items: center; }
 .screen { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .gesture { height: 20px; flex: none; display: flex; justify-content: center; align-items: center; }
-.gesture::after { content: ""; width: 108px; height: 4px; background: var(--text3); }
+.gesture::after { content: ""; width: 108px; height: 4px; border-radius: 2px; background: var(--text); opacity: .5; }
+/* полоска жестов — того же цвета, что и низ экрана: меню, клавиатура, обои экрана блокировки */
+.phone:has(.nav) .gesture { background: var(--surf); }
+.phone:has(.kb) .gesture { background: var(--kb); }
+.phone:has(.lock) .gesture { background: #0e1730; }
+.phone:has(.lock) .gesture::after { background: #fff; }
 #ovl { position: absolute; inset: 0; pointer-events: none; z-index: 30; }
 #ovl .ovl { pointer-events: auto; }
 
-.scr { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.scr { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
 .appbar { height: 56px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px; }
-.appbar .ttl { flex: 1; min-width: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.appbar .ttl::before { content: "~/"; color: var(--text3); font-weight: 400; }
-.appbar .ttl.pl { padding-left: 16px; }
-.appbar .ttl .sub { font-size: 12px; font-weight: 400; color: var(--text3); margin-top: 1px; }
-.appbar .ttl .sub::before { content: "# "; }
-.ib { width: 48px; height: 48px; flex: none; display: grid; place-items: center; cursor: pointer; color: var(--text2); }
-.ib:hover { background: var(--accS); color: var(--acc); }
-.cmd { flex: none; padding: 0 16px 8px; font-size: 13px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cmd b { color: var(--acc); font-weight: 500; }
-.cmd::after { content: "_"; color: var(--acc); animation: blink 1s steps(1) infinite; }
+.appbar:has(.ttl.pl) { height: 76px; }
+.appbar .ttl { flex: 1; min-width: 0; font-size: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar .ttl.pl { padding-left: 16px; font-size: 28px; font-weight: 700; letter-spacing: -.01em; }
+.appbar .ttl .sub { font-size: 13px; font-weight: 400; color: var(--text2); margin-top: 1px; letter-spacing: 0; }
+.ib { width: 48px; height: 48px; flex: none; display: grid; place-items: center; cursor: pointer; color: var(--text); border-radius: 50%; }
+.ib:hover { background: var(--surf2); }
 .body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: none; }
 .body::-webkit-scrollbar { display: none; }
 .body > * { flex-shrink: 0; }
@@ -67,235 +83,241 @@ body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 va
 .w1 { flex: 1 1 0; min-width: 0; } .w100 { width: 100%; }
 .g2 { gap: 2px; } .g4 { gap: 4px; } .g8 { gap: 8px; } .g10 { gap: 10px; } .g12 { gap: 12px; }
 .sb { justify-content: space-between; } .ac { align-items: center; }
-.t11 { font-size: 11px; } .t12 { font-size: 12px; } .t13 { font-size: 13px; } .t14 { font-size: 13.5px; } .t15 { font-size: 14.5px; } .t16 { font-size: 15.5px; }
-.t17 { font-size: 16.5px; } .t18 { font-size: 17px; } .t20 { font-size: 19px; } .t22 { font-size: 21px; } .t24 { font-size: 22px; } .t26 { font-size: 24px; } .t28 { font-size: 26px; }
-.b { font-weight: 700; } .xb { font-weight: 800; } .b5 { font-weight: 500; }
+.t11 { font-size: 11px; } .t12 { font-size: 12px; } .t13 { font-size: 13px; } .t14 { font-size: 14px; } .t15 { font-size: 15px; } .t16 { font-size: 16px; }
+.t17 { font-size: 17px; } .t18 { font-size: 18px; } .t20 { font-size: 20px; } .t22 { font-size: 22px; } .t24 { font-size: 24px; } .t26 { font-size: 26px; } .t28 { font-size: 28px; }
+.b { font-weight: 600; } .xb { font-weight: 700; } .b5 { font-weight: 500; }
 .c2 { color: var(--text2); } .c3 { color: var(--text3); } .red { color: var(--red); } .amber { color: var(--amber); } .acc { color: var(--acc); }
 .tc { text-align: center; } .dim { opacity: .45; }
 
-/* [ кнопки ] */
-.btn { height: 50px; width: 100%; border: 1px dashed var(--dash); border-radius: 0; font: 500 15px var(--mono); text-transform: uppercase; letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text2); background: transparent; flex: none; }
-.btn::before { content: "[ "; } .btn::after { content: " ]"; }
-.btn:hover { background: var(--accS); }
-.btn.pri { color: var(--acc); border: 1px solid var(--acc); }
-.btn.pri:hover { background: var(--acc); color: #000; }
-.btn.pri:disabled { color: var(--text3); border: 1px dashed var(--line); background: transparent; cursor: default; }
-.btn.warn { color: var(--amber); border: 1px solid var(--amber); }
-.btn.warn:hover { background: var(--amber); color: #000; }
-.btn.red { color: var(--red); border: 1px solid var(--red); }
-.btn.red:hover { background: var(--red); color: #000; }
-.btn.sm { height: 40px; font-size: 13px; }
-.link { color: var(--acc); cursor: pointer; font-size: 13.5px; align-self: flex-start; padding: 4px 0; }
-.link::before { content: "> "; }
+/* кнопки-«таблетки» */
+.btn { height: 48px; width: 100%; border: 0; border-radius: 999px; font: 600 15px var(--font); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--acc); background: var(--surf2); flex: none; }
+.btn.pri { background: var(--acc); color: var(--onacc); }
+.btn.pri:hover { filter: brightness(1.08); }
+.btn.pri:disabled { background: var(--surf2); color: var(--text3); cursor: default; filter: none; }
+.btn.sec { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line2); color: var(--acc); }
+.btn.warn { background: var(--amberS); color: var(--amber); }
+.btn.red { background: var(--redS); color: var(--red); }
+.btn.sm { height: 40px; font-size: 14px; }
+.link { color: var(--acc); cursor: pointer; font-size: 14px; font-weight: 600; align-self: flex-start; padding: 4px 0; }
 .link:hover { text-decoration: underline; }
 
-.card { background: transparent; border: 1px dashed var(--dash); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-.card.due { border-color: #6b5a1f; box-shadow: inset 3px 0 0 var(--amber); }
-.card.alert { border-color: var(--red); background: var(--redS); }
-.card.alert .btn { margin-top: 2px; }
-.cap { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: 12px; color: var(--amber); }
-.sect { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin: 8px 2px -2px; }
-.sect::before { content: "# "; }
-.chip0 { display: inline-block; font-size: 11px; color: var(--amber); border: 1px solid var(--amber); padding: 2px 6px; }
+.card { background: var(--surf); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.card.due { box-shadow: inset 0 0 0 1.5px var(--acc); }
+.card.alert { background: var(--redS); }
+.cap { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 12px; color: var(--amber); }
+.sect { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin: 10px 4px -4px; }
+.chip0 { display: inline-block; font-size: 12px; font-weight: 600; color: var(--amber); background: var(--amberS); padding: 3px 10px; border-radius: 999px; }
 
 /* карточка ключа */
-.kc { background: transparent; border: 1px dashed var(--dash); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
-.kc:hover { background: #071407; border-color: var(--acc); }
-.kav { display: flex; align-items: center; font-weight: 800; font-size: 17px; color: var(--acc); flex: none; }
-.kav::before { content: "["; color: var(--text3); } .kav::after { content: "]"; color: var(--text3); }
-.kav.f-symbols { color: var(--blue); }
-.kav.big { font-size: 26px; }
-.st { font-size: 12px; color: var(--text2); border: 1px solid currentColor; padding: 3px 8px; white-space: nowrap; }
-.st.amber { color: #000; background: var(--amber); border-color: var(--amber); } .st.blue { color: var(--blue); }
-.track { display: flex; gap: 3px; width: 100%; }
-.track i { flex: 1; height: 10px; background: #12301a; }
+.kc { background: var(--surf); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; }
+.kc:hover { background: var(--surf2); }
+.st { font-size: 12px; font-weight: 600; color: var(--text2); background: var(--surf2); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.st.amber { color: var(--amber); background: var(--amberS); } .st.blue { color: var(--acc); background: var(--accS); }
+.track { display: flex; gap: 4px; width: 100%; }
+.track i { flex: 1; height: 6px; border-radius: 3px; background: var(--surf2); }
 .track i.done { background: var(--acc); }
-.track i.now { background: var(--amber); animation: blink 1s steps(1) infinite; }
-.track i.next { background: transparent; box-shadow: inset 0 0 0 1px var(--acc); }
-.tlab { display: flex; gap: 3px; width: 100%; margin-top: -4px; }
+.track i.now { background: var(--amber); animation: blink 1.2s ease-in-out infinite; }
+.track i.next { background: var(--accS); box-shadow: inset 0 0 0 1.5px var(--acc); }
+.tlab { display: flex; gap: 4px; width: 100%; margin-top: -4px; }
 .tlab span { flex: 1; text-align: center; font-size: 11px; color: var(--text3); }
-.cp { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
-.cp.ok { color: var(--acc); } .cp.bad { color: var(--red); }
-.addcard { border: 1px dashed var(--dash); height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text2); cursor: pointer; }
-.addcard:hover { border-color: var(--acc); color: var(--acc); }
+.cp { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; }
+.cp.ok { color: var(--ok); } .cp.bad { color: var(--red); }
+.fab { position: absolute; right: 18px; bottom: 86px; width: 58px; height: 58px; border-radius: 50%; background: var(--acc); color: var(--onacc); display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.3); z-index: 5; }
+.fab:hover { filter: brightness(1.08); }
 
 /* нижнее меню */
-.nav { height: 60px; flex: none; display: flex; background: var(--bg); border-top: 1px dashed var(--dash); }
-.nav .it { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text3); cursor: pointer; }
-.nav .pill { display: none; }
-.nav .lb::before { content: "["; } .nav .lb::after { content: "]"; }
-.nav .it:hover { color: var(--text); }
-.nav .it.on .lb { background: var(--acc); color: #000; padding: 2px 6px; }
+.nav { height: 70px; flex: none; display: flex; background: var(--surf); border-top: 1px solid var(--line); }
+.nav .it { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; }
+.nav .pill { display: grid; place-items: center; }
+.nav .it.on { color: var(--acc); font-weight: 600; }
 
 /* поле ввода ключа */
-.field { position: relative; background: transparent; border: 1px dashed var(--acc); padding: 14px 54px 14px 14px; min-height: 100px; font: 500 20px/1.5 var(--mono); letter-spacing: .5px; word-break: break-word; white-space: pre-wrap; }
-.field::before { content: "> "; color: var(--acc); }
-.field .ph { color: var(--text3); font: 400 15px/1.5 var(--mono); }
+.field { position: relative; background: var(--surf); border-radius: 14px; box-shadow: inset 0 0 0 2px var(--acc); padding: 14px 52px 14px 16px; min-height: 96px; font: 500 20px/1.5 var(--mono); letter-spacing: .5px; word-break: break-word; white-space: pre-wrap; }
+.field .ph { color: var(--text3); font: 400 15px/1.5 var(--font); letter-spacing: 0; }
 .field .g { margin-right: .55em; }
-.field .eye { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--text2); cursor: pointer; }
-.field .eye:hover { color: var(--acc); background: var(--accS); }
-.caret { display: inline-block; width: 11px; height: 22px; background: var(--acc); vertical-align: -4px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
-.err { display: flex; gap: 8px; align-items: flex-start; color: var(--red); font-size: 13.5px; }
+.field .eye { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--text2); cursor: pointer; border-radius: 50%; }
+.field .eye:hover { background: var(--surf2); color: var(--acc); }
+.caret { display: inline-block; width: 2px; height: 24px; background: var(--acc); vertical-align: -5px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+.err { display: flex; gap: 8px; align-items: flex-start; color: var(--red); font-size: 14px; }
 .err svg { flex: none; margin-top: 1px; }
+.dg { color: var(--dg); } .sy { color: var(--sy); }
 
 /* клавиатура приложения */
-.kb { flex: none; background: #020402; padding: 6px 3px 6px; display: flex; flex-direction: column; gap: 7px; border-top: 1px dashed var(--line); }
+.kb { flex: none; background: var(--kb); padding: 8px 3px 8px; display: flex; flex-direction: column; gap: 8px; }
 .kbcap { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; color: var(--text3); height: 14px; }
 .kb .r { display: flex; gap: 5px; justify-content: center; padding: 0 2px; }
-.kb .k { flex: 1 1 0; min-width: 0; max-width: 38px; height: 46px; border: 1px solid var(--line); display: grid; place-items: center; font: 400 18px var(--mono); color: var(--text2); cursor: pointer; }
-.kb .k:hover { background: var(--accS); color: var(--acc); border-color: var(--dash); }
-.kb .k.fn { flex: 1.5 1 0; max-width: none; background: var(--accS); font-size: 13px; font-weight: 700; }
-.kb .k.fn.on { background: var(--acc); color: #000; }
-.kb .k.space { flex: 5 1 0; max-width: none; font-size: 12px; color: var(--text3); }
+.kb .k { flex: 1 1 0; min-width: 0; max-width: 37px; height: 46px; border-radius: 8px; background: var(--key); box-shadow: 0 1px 0 var(--keysh); display: grid; place-items: center; font: 400 19px var(--font); color: var(--text); cursor: pointer; }
+.kb .k:active { filter: brightness(1.2); }
+.kb .k.fn { flex: 1.5 1 0; max-width: none; background: var(--keyfn); font-size: 13px; font-weight: 600; }
+.kb .k.fn.on { background: var(--acc); color: var(--onacc); }
+.kb .k.space { flex: 5 1 0; max-width: none; font-size: 13px; color: var(--text2); }
 .kb .k.space.dim { cursor: default; opacity: .55; }
-.kb .k.go { background: var(--acc); color: #000; border-color: var(--acc); }
+.kb .k.go { background: var(--acc); color: var(--onacc); }
 
 /* PIN */
 .dots { display: flex; gap: 14px; margin: 6px 0; }
-.dots i { width: 16px; height: 16px; box-shadow: inset 0 0 0 1px var(--text3); }
+.dots i { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line2); }
 .dots i.on { background: var(--acc); box-shadow: none; }
-.dots.bad i { box-shadow: inset 0 0 0 1px var(--red); animation: shake .3s; }
+.dots.bad i { box-shadow: inset 0 0 0 2px var(--red); animation: shake .3s; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-.pp { flex: none; display: grid; grid-template-columns: repeat(3, 84px); justify-content: center; gap: 12px 26px; padding: 6px 0 22px; }
-.pp .pk { width: 84px; height: 72px; border: 1px solid var(--line); display: grid; place-items: center; font: 400 28px var(--mono); color: var(--text); cursor: pointer; }
-.pp .pk:hover { background: var(--accS); border-color: var(--acc); color: var(--acc); }
-.pp .pk.fn { border-color: transparent; color: var(--text2); }
+.pp { flex: none; display: grid; grid-template-columns: repeat(3, 76px); justify-content: center; gap: 14px 30px; padding: 6px 0 22px; }
+.pp .pk { width: 76px; height: 76px; border-radius: 50%; background: var(--surf); display: grid; place-items: center; font: 500 28px var(--font); color: var(--text); cursor: pointer; }
+.pp .pk:hover { background: var(--surf2); }
+.pp .pk.fn { background: transparent; color: var(--text2); }
 .pp .pk.blank { visibility: hidden; }
 
 /* системное окно отпечатка */
-.ovl { position: absolute; inset: 0; background: rgba(0,0,0,.75); display: flex; flex-direction: column; justify-content: flex-end; animation: fade .15s; }
+.ovl { position: absolute; inset: 0; background: rgba(0,0,0,.5); display: flex; flex-direction: column; justify-content: flex-end; animation: fade .15s; }
 @keyframes fade { from { opacity: 0; } }
-.sheet { background: #050b05; border-top: 1px solid var(--acc); padding: 18px 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; animation: up .2s; }
+.sheet { background: var(--surf); border-radius: 28px 28px 0 0; padding: 20px 24px 22px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; animation: up .2s; }
 @keyframes up { from { transform: translateY(40px); opacity: 0; } }
-.fp { width: 80px; height: 80px; border: 1px solid var(--acc); display: grid; place-items: center; color: var(--acc); cursor: pointer; margin: 18px 0 6px; animation: pulse 1.6s infinite; }
-.fp.ok { background: var(--acc); color: #000; animation: none; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(61,255,110,.4); } 70% { box-shadow: 0 0 0 14px rgba(61,255,110,0); } }
-.tbtn { color: var(--acc); font-size: 13.5px; cursor: pointer; padding: 10px 4px; align-self: flex-end; }
-.tbtn::before { content: "[ "; } .tbtn::after { content: " ]"; }
+.fp { width: 76px; height: 76px; border-radius: 50%; background: var(--accS); display: grid; place-items: center; color: var(--acc); cursor: pointer; margin: 18px 0 6px; animation: pulse 1.6s infinite; }
+.fp.ok { background: var(--ok); color: #fff; animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--accS); } 70% { box-shadow: 0 0 0 16px transparent; } }
+.tbtn { color: var(--acc); font-size: 14px; font-weight: 600; cursor: pointer; padding: 10px 4px; align-self: flex-end; }
 
 /* части ключа (символы) */
 .chunks { display: grid; gap: 8px; grid-template-columns: repeat(2, 1fr); width: 100%; }
 .chunks.cols3 { grid-template-columns: repeat(3, 1fr); }
-.ch { position: relative; border: 1px dashed var(--dash); padding: 10px 10px 10px 30px; font: 500 17px/1.3 var(--mono); min-height: 48px; display: flex; align-items: center; word-break: break-all; }
-.ch .n { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font: 400 12px var(--mono); color: var(--text3); }
-.ch .mk { position: absolute; right: 6px; top: 5px; display: flex; }
-.ch.good { border: 1px solid var(--dash); } .ch.good .mk { color: var(--acc); }
-.ch.bad { border: 1px solid var(--red); } .ch.bad .mk { color: var(--red); }
-.ch .fix { color: var(--acc); font-size: 14px; }
+.ch { position: relative; background: var(--surf); border-radius: 12px; padding: 12px 12px 12px 32px; font: 500 17px/1.3 var(--mono); min-height: 50px; display: flex; align-items: center; word-break: break-all; }
+.ch .n { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font: 500 12px var(--font); color: var(--text3); }
+.ch .mk { position: absolute; right: 8px; top: 7px; display: flex; }
+.ch.good { box-shadow: inset 0 0 0 1.5px var(--ok); } .ch.good .mk { color: var(--ok); }
+.ch.bad { box-shadow: inset 0 0 0 1.5px var(--red); } .ch.bad .mk { color: var(--red); }
+.ch .fix { color: var(--ok); font-size: 14px; }
 .ch.slot { cursor: pointer; color: var(--text3); letter-spacing: 2px; }
 .ch.slot:hover { background: var(--accS); }
-.ch.slot.open { color: var(--amber); cursor: default; letter-spacing: .5px; border: 1px solid var(--amber); }
-.ch.slot.hintbad { border: 1px dashed var(--red); }
-.chunks.big .ch { font-size: 20px; min-height: 58px; }
+.ch.slot.open { color: var(--text); cursor: default; letter-spacing: .5px; background: var(--amberS); }
+.ch.slot.hintbad { outline: 1.5px dashed var(--red); outline-offset: -1.5px; }
+.chunks.big .ch { font-size: 20px; min-height: 60px; }
 /* фраза — одной строкой, без блоков */
-.phrase { width: 100%; border-left: 2px solid var(--acc); padding: 10px 14px; font: 500 18px/1.7 var(--mono); word-break: break-word; background: rgba(61,255,110,.03); }
-.phrase.big { font-size: 21px; line-height: 1.6; padding: 14px 16px; }
+.phrase { width: 100%; background: var(--surf); border-radius: 14px; padding: 12px 16px; font: 500 18px/1.7 var(--mono); word-break: break-word; }
+.phrase.big { font-size: 21px; line-height: 1.6; padding: 16px 18px; }
 .phrase .bad { color: var(--red); text-decoration: line-through; text-decoration-thickness: 2px; }
-.phrase .fix { color: var(--acc); }
+.phrase .fix { color: var(--ok); }
 .phrase .op { color: var(--amber); }
-.phrase .hid { color: var(--text3); cursor: pointer; padding: 0 2px; letter-spacing: 1px; }
-.phrase .hid:hover { background: var(--accS); color: var(--text2); }
+.phrase .hid { color: var(--text3); cursor: pointer; padding: 0 3px; border-radius: 6px; letter-spacing: 1px; }
+.phrase .hid:hover { background: var(--accS); color: var(--acc); }
 .phrase .hid.hint { box-shadow: inset 0 -2px 0 var(--red); }
+/* внутри карточки части ключа — на подложке, а не белое на белом */
+.card .phrase, .card .ch, .card .fullbox { background: var(--surf2); }
+.card .ch.slot.open { background: var(--amberS); }
+/* уроки по блокам */
+.strip { display: grid; grid-template-columns: repeat(var(--n, 5), 1fr); gap: 6px; }
+.sk { background: var(--surf); border-radius: 10px; padding: 6px 2px 8px; text-align: center; font: 500 16px/1.3 var(--mono); color: var(--text3); }
+.sk .n { display: block; font: 500 11px var(--font); color: var(--text3); margin-bottom: 2px; }
+.sk.done { background: var(--okS); color: var(--ok); }
+.sk.done .n { color: var(--ok); }
+.sk.cur { box-shadow: inset 0 0 0 2px var(--acc); color: var(--text); }
+.sk.cur .n { color: var(--acc); font-weight: 700; }
+.sk.cur.hint { background: var(--accS); }
+.sk.all { box-shadow: inset 0 0 0 2px var(--acc); }
+.hintbig { background: var(--accS); border-radius: 16px; padding: 14px; text-align: center; font: 500 36px/1.2 var(--mono); letter-spacing: 4px; }
+.hintbig .n { display: block; font: 600 12px var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--acc); margin-bottom: 4px; }
+.bgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bt { background: var(--surf2); border-radius: 12px; padding: 10px 10px 9px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+.bt:hover { box-shadow: inset 0 0 0 1.5px var(--acc); }
+.bt .mask { font: 500 15px var(--mono); letter-spacing: 2px; color: var(--text3); }
+.meter { display: flex; gap: 3px; }
+.meter i { flex: 1; height: 5px; border-radius: 3px; background: var(--line2); opacity: .5; }
+.meter i.y { background: var(--ok); opacity: 1; } .meter i.n { background: var(--red); opacity: 1; }
+.q-good { color: var(--ok); } .q-mid { color: var(--amber); } .q-bad { color: var(--red); } .q-new { color: var(--text3); }
+.qd { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
 .lvl .lh { display: flex; gap: 12px; align-items: flex-start; }
-.lv { width: 26px; height: 26px; border: 1px solid var(--amber); color: var(--amber); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; margin-top: 1px; }
-.fullbox { border: 1px dashed var(--dash); min-height: 58px; padding: 12px; font: 500 17px/1.4 var(--mono); display: flex; align-items: center; justify-content: center; text-align: center; }
-.fullbox .shown { display: none; color: var(--amber); }
+.lv { width: 28px; height: 28px; border-radius: 50%; background: var(--amberS); color: var(--amber); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+.fullbox { background: var(--surf2); border-radius: 14px; min-height: 60px; padding: 12px; font: 500 17px/1.4 var(--mono); display: flex; align-items: center; justify-content: center; text-align: center; }
+.fullbox .shown { display: none; }
 .fullbox.on .shown { display: block; } .fullbox.on .hidden { display: none; }
 .fullbox .hidden { color: var(--text3); letter-spacing: 3px; }
-.hold { height: 46px; border: 1px solid var(--amber); color: var(--amber); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; cursor: pointer; touch-action: none; text-transform: uppercase; font-size: 13.5px; }
-.hold.on { background: var(--amber); color: #000; }
-.timer { font: 700 14px var(--mono); color: var(--amber); border: 1px solid var(--amber); padding: 4px 8px; margin-right: 8px; }
-.note { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text2); border: 1px dashed var(--dash); padding: 10px 12px; text-align: left; width: 100%; }
-.note.amber { border-color: var(--amber); color: var(--amber); }
-.note.red { border-color: var(--red); color: #ffb0b0; background: var(--redS); }
+.hold { height: 48px; border-radius: 999px; background: var(--amberS); color: var(--amber); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; cursor: pointer; touch-action: none; }
+.hold.on { background: var(--amber); color: var(--onamber); }
+.timer { font: 600 14px var(--font); color: var(--amber); background: var(--amberS); padding: 5px 12px; border-radius: 999px; margin-right: 8px; }
+.note { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text2); background: var(--surf); border-radius: 14px; padding: 12px 14px; text-align: left; width: 100%; }
+.note.amber { background: var(--amberS); color: var(--amber); }
+.note.red { background: var(--redS); color: var(--red); }
 .note svg { flex: none; }
-.steps { display: flex; gap: 4px; }
-.steps i { flex: 1; height: 8px; background: #12301a; }
-.steps i.done { background: var(--acc); } .steps i.now { background: var(--blue); animation: blink 1s steps(1) infinite; }
-.tip { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text2); }
+.steps { display: flex; gap: 6px; }
+.steps i { flex: 1; height: 6px; border-radius: 3px; background: var(--surf2); }
+.steps i.done { background: var(--acc); } .steps i.now { background: var(--acc); animation: blink 1.2s ease-in-out infinite; }
+.tip { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--text2); }
 .tip svg { flex: none; color: var(--amber); }
 
 /* история ключа */
-.tl { display: flex; gap: 12px; align-items: flex-start; position: relative; padding-bottom: 14px; }
-.tl:not(:last-child)::before { content: ""; position: absolute; left: 11px; top: 26px; bottom: 2px; border-left: 1px dashed var(--dash); }
-.tl .dot { width: 24px; height: 24px; flex: none; display: grid; place-items: center; border: 1px solid var(--acc); color: var(--acc); background: var(--bg); }
-.tl.peek .dot { border-color: var(--amber); color: var(--amber); } .tl.fail .dot { border-color: var(--red); color: var(--red); }
-.tl.learn .dot { border-color: var(--blue); color: var(--blue); }
-.tl.next .dot { border-color: var(--amber); animation: blink 1.2s steps(1) infinite; }
-.tl.fut .dot { border: 1px dashed var(--line); }
+.tl { display: flex; gap: 12px; align-items: flex-start; position: relative; padding-bottom: 16px; }
+.tl:not(:last-child)::before { content: ""; position: absolute; left: 15px; top: 36px; bottom: 2px; width: 2px; border-radius: 1px; background: var(--line); }
+.tl .dot { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 50%; color: var(--ok); background: var(--okS); }
+.tl.peek .dot { color: var(--amber); background: var(--amberS); } .tl.fail .dot { color: var(--red); background: var(--redS); }
+.tl.learn .dot { color: var(--acc); background: var(--accS); }
+.tl.next .dot { background: var(--surf); box-shadow: inset 0 0 0 2px var(--amber); animation: blink 1.4s ease-in-out infinite; }
+.tl.fut .dot { background: var(--surf2); }
+.tl .col { padding-top: 5px; }
 .tl.fut .t15 { color: var(--text3); }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.stats div { border: 1px dashed var(--dash); padding: 10px; display: flex; flex-direction: column; gap: 2px; }
-.stats b { font-size: 22px; } .stats span { font-size: 11.5px; color: var(--text3); }
+.stats div { background: var(--surf); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.stats b { font-size: 22px; font-weight: 700; } .stats span { font-size: 12px; color: var(--text2); }
 
 /* списки */
-.lst { border: 1px dashed var(--dash); }
-.li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px dashed var(--line); }
+.lst { background: var(--surf); border-radius: 16px; overflow: hidden; }
+.li { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
 .li:first-child { border-top: 0; }
-.li.click { cursor: pointer; } .li.click:hover { background: var(--accS); }
-.ico { width: 32px; height: 32px; display: grid; place-items: center; flex: none; border: 1px solid currentColor; }
-.ico.ok, .ico.restore { color: var(--acc); }
-.ico.fail, .ico.bad, .ico.pin, .ico.lost { color: var(--red); }
-.ico.peek, .ico.warn { color: var(--amber); }
-.ico.learn, .ico.add, .ico.diag { color: var(--blue); }
-.ico.pend { color: var(--text3); border-style: dashed; }
+.li.click { cursor: pointer; } .li.click:hover { background: var(--surf2); }
+.ico { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.ico.ok, .ico.restore { color: var(--ok); background: var(--okS); }
+.ico.fail, .ico.bad, .ico.pin, .ico.lost { color: var(--red); background: var(--redS); }
+.ico.peek, .ico.warn { color: var(--amber); background: var(--amberS); }
+.ico.learn, .ico.add, .ico.diag { color: var(--acc); background: var(--accS); }
+.ico.pend { color: var(--text2); background: var(--surf2); }
 .chips { display: flex; gap: 8px; }
-.chip { padding: 5px 10px; border: 1px solid var(--line); color: var(--text2); font-size: 13px; cursor: pointer; }
-.chip:hover { border-color: var(--acc); }
-.chip.on { background: var(--acc); color: #000; border-color: var(--acc); }
-.dayh { font-size: 12.5px; color: var(--text3); margin: 6px 2px -4px; }
-.dayh::before { content: "-- "; } .dayh::after { content: " --"; }
-.spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--acc); animation: rot .8s linear infinite; }
+.chip { padding: 7px 14px; border-radius: 999px; background: var(--surf); color: var(--text2); font-size: 13.5px; font-weight: 500; cursor: pointer; }
+.chip:hover { color: var(--text); }
+.chip.on { background: var(--acc); color: var(--onacc); }
+.dayh { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin: 8px 4px -4px; }
+.spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--acc); animation: rot .8s linear infinite; }
 @keyframes rot { to { transform: rotate(360deg); } }
-.bigic { width: 84px; height: 84px; display: grid; place-items: center; flex: none; border: 1px solid currentColor; }
-.bigic.ok { color: var(--acc); box-shadow: 0 0 24px rgba(61,255,110,.15); } .bigic.bad { color: var(--red); } .bigic.blue { color: var(--blue); }
+.bigic { width: 88px; height: 88px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.bigic.ok { color: var(--ok); background: var(--okS); } .bigic.bad { color: var(--red); background: var(--redS); } .bigic.blue { color: var(--acc); background: var(--accS); }
 
 /* первый запуск, добавление */
-.logo { width: 84px; height: 84px; border: 1px solid var(--acc); display: grid; place-items: center; color: var(--acc); box-shadow: 0 0 30px rgba(61,255,110,.18); }
+.logo { width: 88px; height: 88px; border-radius: 26px; background: var(--acc); display: grid; place-items: center; color: var(--onacc); box-shadow: 0 10px 30px var(--accS); }
 .pr { display: flex; gap: 14px; align-items: flex-start; }
-.lbl { font-size: 12px; color: var(--text3); margin: 6px 2px -4px; }
-.lbl::before { content: "# "; }
-.tin { height: 48px; background: transparent; border: 1px dashed var(--dash); outline: 0; color: var(--text); font: 15px var(--mono); padding: 0 14px; user-select: text; }
-.tin:focus { border: 1px solid var(--acc); }
-.opt { display: flex; gap: 12px; align-items: center; border: 1px dashed var(--dash); padding: 12px 14px; cursor: pointer; }
-.opt:hover { background: #071407; }
-.opt .radio { width: 18px; height: 18px; box-shadow: inset 0 0 0 1px var(--text3); flex: none; }
-.opt.on { border: 1px solid var(--acc); } .opt.on .radio { box-shadow: inset 0 0 0 1px var(--acc), inset 0 0 0 4px var(--bg), inset 0 0 0 9px var(--acc); }
+.lbl { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin: 8px 4px -4px; }
+.tin { height: 52px; background: var(--surf); border: 0; box-shadow: inset 0 0 0 1.5px var(--line2); border-radius: 14px; outline: 0; color: var(--text); font: 16px var(--font); padding: 0 16px; user-select: text; }
+.tin:focus { box-shadow: inset 0 0 0 2px var(--acc); }
+.opt { display: flex; gap: 12px; align-items: center; background: var(--surf); border-radius: 14px; padding: 14px 16px; cursor: pointer; }
+.opt:hover { background: var(--surf2); }
+.opt .radio { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--text3); flex: none; }
+.opt.on { box-shadow: inset 0 0 0 2px var(--acc); } .opt.on .radio { box-shadow: inset 0 0 0 2px var(--acc), inset 0 0 0 5px var(--surf), inset 0 0 0 10px var(--acc); }
 .opt .ex { font: 13px var(--mono); color: var(--text3); }
 
 /* экран блокировки */
-.lock { background: radial-gradient(90% 60% at 50% 20%, #08200c, #020402 70%); align-items: center; padding: 40px 16px 0; }
-.lk-time { font-size: 80px; font-weight: 300; line-height: 1; margin-top: 36px; color: var(--acc); text-shadow: 0 0 18px rgba(61,255,110,.45); }
+.lock { --text: #fff; --text2: rgba(255,255,255,.78); --text3: rgba(255,255,255,.6); background: linear-gradient(165deg, #2c5bc4 0%, #18306b 55%, #0e1730 100%); align-items: center; padding: 40px 16px 0; color: #fff; }
+.lk-time { font-size: 80px; font-weight: 300; line-height: 1; margin-top: 36px; }
 .lk-date { color: var(--text2); margin-top: 10px; }
-.notif { margin-top: 56px; width: 100%; background: rgba(4,10,4,.9); border: 1px dashed var(--acc); padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
-.notif:hover { background: var(--accS); }
-.nic { width: 22px; height: 22px; background: var(--acc); color: #000; display: grid; place-items: center; }
+.notif { --text: #1a1d23; --text2: #5b6372; margin-top: 56px; width: 100%; background: rgba(255,255,255,.94); color: #1a1d23; border-radius: 22px; padding: 14px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.nic { width: 22px; height: 22px; border-radius: 50%; background: #175ddc; color: #fff; display: grid; place-items: center; }
 .lk-fp { color: var(--text3); margin-bottom: 12px; }
 
-.toast { position: absolute; left: 50%; top: 100px; transform: translateX(-50%); background: #000; color: var(--acc); border: 1px solid var(--acc); padding: 8px 14px; font-size: 13.5px; z-index: 40; white-space: nowrap; }
-.toast::before { content: "> "; }
+.toast { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); background: var(--toast); color: var(--ontoast); padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; z-index: 40; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
 
 /* ---------- панель справа ---------- */
 .panel { width: 400px; display: flex; flex-direction: column; gap: 14px; }
-.pc { background: #020502; border: 1px dashed var(--dash); padding: 14px 16px; }
-.pc h3 { margin: 0 0 10px; font-size: 14px; color: var(--acc); }
-.pc h3::before { content: "# "; color: var(--text3); }
+.pc { background: var(--surf); border-radius: 16px; padding: 14px 16px; }
+.pc h3 { margin: 0 0 10px; font-size: 14px; font-weight: 700; }
 .pc ul { margin: 0; padding-left: 18px; color: var(--text2); font-size: 13px; line-height: 1.5; }
 .pc li + li { margin-top: 4px; }
 .pc p { margin: 8px 0 0; color: var(--text2); font-size: 13px; line-height: 1.5; }
 .pbtns { display: flex; flex-wrap: wrap; gap: 6px; }
-.pbtns button { background: transparent; color: var(--text2); border: 1px solid var(--line); border-radius: 0; padding: 6px 9px; font: 12.5px var(--mono); cursor: pointer; }
-.pbtns button:hover { border-color: var(--acc); color: var(--acc); }
-.pbtns button.go { color: var(--acc); border-color: var(--acc); font-weight: 700; }
-.pbtns button.go:hover { background: var(--acc); color: #000; }
+.pbtns button { background: var(--surf2); color: var(--text); border: 0; border-radius: 999px; padding: 6px 12px; font: 500 12.5px var(--font); cursor: pointer; }
+.pbtns button:hover { color: var(--acc); }
+.pbtns button.go { background: var(--acc); color: var(--onacc); }
 .pbtns button:disabled { opacity: .35; cursor: default; }
 .pnow { margin-top: 10px; font-size: 12.5px; color: var(--text3); }
-.pnow b { color: var(--text2); font-weight: 500; }
+.pnow b { color: var(--text2); font-weight: 600; }
 .demo { margin-top: 10px; font: 13px/1.45 var(--mono); color: var(--text); border-collapse: collapse; }
 .demo td { padding: 3px 10px 3px 0; vertical-align: top; }
-.demo td:first-child { color: var(--text3); white-space: nowrap; }
+.demo td:first-child { color: var(--text3); white-space: nowrap; font-family: var(--font); }
 .chk { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text2); cursor: pointer; }
-.chk input { margin-top: 2px; accent-color: #3dff6e; }
+.chk input { margin-top: 2px; accent-color: var(--acc); }
 </style>
 </head>
 <body>
@@ -303,6 +325,7 @@ body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 va
   <h1>RememberKey — прототип</h1>
   <span class="c3 t13">ASUS ROG Phone 9 Pro · 412 × 915 dp</span>
   <div class="sp"></div>
+  <div class="seg" id="themeSeg"><button data-t="dark">Тёмная</button><button data-t="light">Светлая</button></div>
   <label>Масштаб
     <select id="zoom">
       <option value="1">100%</option><option value="0.9" selected>90%</option><option value="0.8">80%</option><option value="0.7">70%</option>
@@ -336,7 +359,7 @@ body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 va
         <button onclick="J.key()">Ключ A</button>
         <button onclick="J.keyB()">Ключ B — был подсмотр</button>
         <button onclick="J.add()">Добавить ключ</button>
-        <button onclick="J.learn()">Заучивание</button>
+        <button onclick="J.lesson()">Уроки по блокам</button>
         <button onclick="J.journal()">Журнал</button>
         <button onclick="J.security()">Защита</button>
         <button onclick="J.diag()">Проверка телефона</button>
@@ -355,9 +378,9 @@ body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 va
       </div>
       <p>На экранах ввода можно печатать и с клавиатуры компьютера. Отпечаток — щелчок по значку или Enter.</p>
       <table class="demo">
-        <tr><td>Ключ A</td><td>якорь сирень олово туман пряник витраж</td></tr>
-        <tr><td>Ключ B</td><td>Tq7#mV2!pR9x</td></tr>
-        <tr><td>Новый</td><td>гроза лимон кедр бархат шлюз маяк<br>Wb4$kZ8&amp;nL3q</td></tr>
+        <tr><td>Ключ A</td><td>Hq3!vN8#cR5$xP2&amp;</td></tr>
+        <tr><td>Ключ B</td><td>Tq7#mV2!pR9xLk4&amp;Zw8$</td></tr>
+        <tr><td>Новый</td><td>Wb4$kZ8&amp;nL3qHs6%Py2@</td></tr>
         <tr><td>PIN</td><td>123456</td></tr>
       </table>
     </div>
@@ -378,7 +401,8 @@ body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 va
         <li>Подсмотр: PIN приложения, потом отпечаток. Три уровня — где ошибка → одна часть → целиком, пока держите кнопку. Экран закрывается сам через 60 секунд.</li>
         <li>После подсмотра — сразу ввод по памяти, проверка завтра, интервалы заново. Открыть копию и ничего не посмотреть — не считается.</li>
         <li>Неверный PIN: после третьей ошибки пауза 30 с, дальше 1, 5, 15 минут. Ничего не стирается.</li>
-        <li>Новый ключ: ввод дважды → отпечаток (шифруем копию) → заучивание, 3 раза подряд по памяти.</li>
+        <li>Новый ключ: ввод дважды (или вставка из буфера — тогда один раз, буфер сразу очищается) → отпечаток (шифруем копию) → заучивание. Уроками по блокам из 4 символов: блок 3 раза с подсказкой, 3 по памяти, следующий блок; в конце весь ключ 3 раза.</li>
+        <li>В карточке ключа из символов видно, какие блоки помнятся хорошо и какие плохо; любой блок можно потренировать отдельно (PIN и отпечаток).</li>
         <li>Журнал нельзя очистить.</li>
       </ul>
     </div>
@@ -396,7 +420,7 @@ body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.4 va
 
     <div class="pc">
       <h3>Форматы ключей</h3>
-      <p style="margin:0">Два формата: фраза (A) и символы (B). Фраза везде показывается строкой, символы — блоками по 4. В «Защите» — результаты диагностики вашего телефона от 21 ноября.</p>
+      <p style="margin:0">Ключ — только символы: буквы, цифры и знаки без пробелов, везде показывается блоками по 4. В «Защите» — результаты диагностики вашего телефона от 21 ноября.</p>
     </div>
   </div>
 </div>
@@ -419,6 +443,7 @@ function rel(d) { const n = diffDays(d); if (n === 0) return 'сегодня'; i
 function dayTitle(d) { const n = diffDays(d); return n === 0 ? 'Сегодня' : n === -1 ? 'Вчера' : fmtDate(d); }
 const fromAttempt = n => (n === 2 ? 'со второй' : `с ${ORD[n] || n + '-й'}`) + ' попытки';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sym = s => [...String(s)].map(c => /[0-9]/.test(c) ? `<span class="dg">${c}</span>` : /[\p{L}\s]/u.test(c) ? esc(c) : `<span class="sy">${esc(c)}</span>`).join('');
 const $ = s => document.querySelector(s);
 
 // ---------- значки ----------
@@ -446,11 +471,10 @@ const LOGIC = { ok: P.check, fail: P.close, peek: P.eye, pin: P.lock, learn: P.k
 
 // ---------- форматы ключей ----------
 const FMT = {
-  words: { name: 'Фраза', desc: 'несколько слов через пробел', ex: 'река окно …', kb: 'ru', unit: ['слово', 'слова', 'слов'], part: ['слово', 'слова', 'слов'], ph: 'Слова через пробел' },
   symbols: { name: 'Символы', desc: 'буквы, цифры и знаки', ex: 'k7#Q…', kb: 'en', unit: ['символ', 'символа', 'символов'], part: ['блок', 'блока', 'блоков'], ph: 'Символы без пробелов' },
 };
-const DEMO = { A: 'якорь сирень олово туман пряник витраж', B: 'Tq7#mV2!pR9x' };
-const DEMO_NEW = { words: 'гроза лимон кедр бархат шлюз маяк', symbols: 'Wb4$kZ8&nL3q' };
+const DEMO = { A: 'Hq3!vN8#cR5$xP2&', B: 'Tq7#mV2!pR9xLk4&Zw8$' };
+const DEMO_NEW = { symbols: 'Wb4$kZ8&nL3qHs6%Py2@' };
 function chunks(fmt, s) { if (fmt === 'words') return s.trim().split(/\s+/).filter(Boolean); const t = s.replace(/\s+/g, ''), out = []; for (let i = 0; i < t.length; i += 4) out.push(t.slice(i, i + 4)); return out; }
 function norm(fmt, s) { return fmt === 'words' ? s.trim().toLowerCase().replace(/\s+/g, ' ') : s.replace(/\s+/g, ''); }
 const same = (fmt, a, b) => norm(fmt, a) === norm(fmt, b);
@@ -474,15 +498,18 @@ function initial() {
     buf: '', show: false, kb: 'ru', kbAlpha: 'ru', shift: false, err: '', last: null, newKey: null,
     pin: '123456', pinBuf: '', pinFails: 0, lockUntil: 0,
     keys: [
-      { id: 'A', name: 'Ключ A', fmt: 'words', secret: DEMO.A, created: day(10), learned: true, level: 2, due: day(21), copy: true, checks: 2, first: 2, peeks: 0,
+      { id: 'A', name: 'Ключ A', fmt: 'symbols', secret: DEMO.A, created: day(10), learned: true, level: 2, due: day(21), copy: true, checks: 2, first: 2, peeks: 0,
+        blocks: [[1, 1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1]].map(h => h.map(Boolean)), lessonBlock: 4,
         hist: [{ d: day(10), k: 'learn', t: 'Заучивание' }, { d: day(11), k: 'ok', t: 'Через 1 день — верно' }, { d: day(14), k: 'ok', t: 'Через 3 дня — верно' }] },
       { id: 'B', name: 'Ключ B', fmt: 'symbols', secret: DEMO.B, created: day(18), learned: true, level: 1, due: day(23), copy: true, checks: 2, first: 1, peeks: 1,
+        // последние вводы каждого блока по памяти: true — верно
+        blocks: [[1, 1, 1, 1, 1], [1, 0, 1, 1, 1], [0, 1, 0, 0, 1], [1, 1, 1], [0, 1, 1, 1, 1]].map(h => h.map(Boolean)), lessonBlock: 5,
         hist: [{ d: day(18), k: 'learn', t: 'Заучивание' }, { d: day(19), k: 'peek', t: 'Через 1 день — не вспомнили, подсмотр 1 блока, повтор заново' }, { d: day(20), k: 'ok', t: 'Через 1 день — верно' }] },
     ],
     log: [
       { d: day(20), time: '9:12', k: 'ok', title: 'Проверка · Ключ B', sub: 'Верно с первой попытки · следующая через 3 дня' },
       { d: day(19), time: '21:44', k: 'ok', title: 'Повтор · Ключ B', sub: 'Верно по памяти после подсмотра · проверка завтра' },
-      { d: day(19), time: '21:41', k: 'peek', title: 'Подсмотр · Ключ B', sub: 'PIN и отпечаток · открыт 1 блок из 3' },
+      { d: day(19), time: '21:41', k: 'peek', title: 'Подсмотр · Ключ B', sub: 'PIN и отпечаток · открыт 1 блок из 5' },
       { d: day(19), time: '21:39', k: 'fail', title: 'Проверка · Ключ B', sub: 'Не совпало · попытка 2' },
       { d: day(19), time: '21:38', k: 'fail', title: 'Проверка · Ключ B', sub: 'Не совпало · попытка 1' },
       { d: day(18), time: '20:05', k: 'learn', title: 'Заучен · Ключ B', sub: '3 раза подряд по памяти · первая проверка завтра' },
@@ -490,7 +517,7 @@ function initial() {
       { d: day(14), time: '8:50', k: 'ok', title: 'Проверка · Ключ A', sub: 'Верно с первой попытки · следующая через 7 дней' },
       { d: day(11), time: '19:20', k: 'ok', title: 'Проверка · Ключ A', sub: 'Верно с первой попытки · следующая через 3 дня' },
       { d: day(10), time: '22:31', k: 'learn', title: 'Заучен · Ключ A', sub: '3 раза подряд по памяти · первая проверка завтра' },
-      { d: day(10), time: '22:24', k: 'add', title: 'Добавлен · Ключ A', sub: '6 слов · хеш и зашифрованная копия' },
+      { d: day(10), time: '22:24', k: 'add', title: 'Добавлен · Ключ A', sub: '16 символов · хеш и зашифрованная копия' },
       { d: day(10), time: '22:10', k: 'diag', title: 'Проверка телефона', sub: '1 замечание: устаревшее обновление безопасности' },
     ],
   };
@@ -507,6 +534,7 @@ function inputFmt() {
   const s = S.screen, p = S.params;
   if (s === 'check') return key(p.id).fmt;
   if (s === 'learn' && p.phase === 'recall') return key(p.id).fmt;
+  if (s === 'lesson' && p.stage !== 'wrong') return 'symbols';
   if ((s === 'add2' || s === 'add3') && S.newKey) return S.newKey.fmt;
   return null;
 }
@@ -523,27 +551,9 @@ function back() { stopTimers(); const p = S.stack.pop(); if (p) { S.screen = p.s
 
 function render() {
   $('#screen').innerHTML = SCR[S.screen].view(S.params);
-  addCmd();
   $('#ovl').innerHTML = S.overlay ? ovlView(S.overlay) : '';
   $('#sbtime').textContent = S.screen === 'notif' ? '' : clock();
   syncPanel();
-}
-// строка-команда над экраном, как в терминале
-function cmdFor() {
-  const s = S.screen, p = S.params, id = p.id || '';
-  if (s === 'check') return { check: `rk check ${id}`, practice: `rk practice ${id} --times 3`, relearn: `rk recall ${id}`, restore: `rk restore ${id}` }[p.mode];
-  return {
-    home: 'rk status', key: `rk show ${id}`, result: `rk check ${id}`, pin: `rk unlock ${id} --pin`, pinset: 'rk pin --set',
-    peek: `rk peek ${id} --pin --finger`, lost: `rk peek ${id}`, add1: 'rk add', add2: 'rk add --input', add3: 'rk add --confirm',
-    added: `rk add --save ${id}`, learn: `rk learn ${id}`, learned: `rk learn ${id} --done`, journal: 'rk log',
-    security: 'rk diag --summary', diag: 'rk diag --run', onboard: 'rk init',
-  }[s];
-}
-function addCmd() {
-  const c = cmdFor(); if (!c) return;
-  const html = `<div class="cmd">rk@rog:~$ <b>${esc(c)}</b></div>`;
-  const bar = $('#screen .appbar');
-  if (bar) bar.insertAdjacentHTML('afterend', html); else $('#screen .scr')?.insertAdjacentHTML('afterbegin', html);
 }
 function toast(msg) { const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; $('#phone').appendChild(el); setTimeout(() => el.remove(), 1900); }
 
@@ -568,7 +578,7 @@ function maskView(fmt, buf, show) {
   if (fmt === 'words') return esc(show ? buf : buf.replace(/\S/g, '•'));
   const t = buf.replace(/\s+/g, ''), g = [];
   for (let i = 0; i < t.length; i += 4) g.push(t.slice(i, i + 4));
-  return g.map((x, i) => `<span class="${i < g.length - 1 ? 'g' : ''}">${show ? esc(x) : '•'.repeat(x.length)}</span>`).join('');
+  return g.map((x, i) => `<span class="${i < g.length - 1 ? 'g' : ''}">${show ? sym(x) : '•'.repeat(x.length)}</span>`).join('');
 }
 function fieldView(fmt) {
   const inner = S.buf ? `${maskView(fmt, S.buf, S.show)}<span class="caret"></span>` : `<span class="caret"></span><span class="ph"> ${FMT[fmt].ph}</span>`;
@@ -586,9 +596,9 @@ function kbView(fmt) {
   const space = fmt === 'words' ? `<div class="k space" data-act="kb" data-arg=" ">${lay === 'en' ? 'English' : lay === 'ru' ? 'Русский' : 'пробел'}</div>` : `<div class="k space dim">без пробелов</div>`;
   return `<div class="kb">${cap}<div class="r">${row(rows[0])}</div><div class="r">${row(rows[1])}</div><div class="r">${shift}${row(rows[2])}<div class="k fn" data-act="bksp">${ic(P.bksp, 22)}</div></div><div class="r">${sw}${lang}${space}<div class="k fn go" data-act="submit">${ic(P.check)}</div></div></div>`;
 }
-function inputScreen({ title, sub, prompt, hint, fmt, btn = 'Проверить', top = '', below = '' }) {
+function inputScreen({ title, sub, prompt, hint, fmt, btn = 'Проверить', top = '', below = '', closeAct }) {
   const typed = S.buf.trim() ? `<div class="t13 c3">Набрано: ${sizeText(fmt, S.buf)}</div>` : '';
-  return `<div class="scr">${appbar(title, { close: true, sub })}
+  return `<div class="scr">${appbar(title, { close: true, sub, closeAct })}
     <div class="body">${top}<div class="col g4"><div class="t20 b">${prompt}</div><div class="t14 c3">${hint}</div></div>
       ${fieldView(fmt)}${typed}
       ${S.err ? `<div class="err">${ic(P.warn, 18)}<span>${S.err}</span></div>` : ''}${below}</div>
@@ -631,16 +641,16 @@ SCR.home = { view() {
   else if (unl) h += `<div class="card"><div class="cap" style="color:var(--blue)">Не закончено</div><div class="t22 b">Заучивание · ${esc(unl.name)}</div><div class="t14 c2">Откроем ключ по PIN и отпечатку и повторим 3 раза подряд по памяти.</div><button class="btn pri" data-act="continueLearn" data-arg="${unl.id}">Продолжить</button></div>`;
   else if (due.length) h += `<div class="card due"><div class="cap amber">Сегодня</div><div class="t26 xb">${due.length} ${plural(due.length, 'проверка', 'проверки', 'проверок')}</div><div class="t14 c2">${due.map(k => esc(k.name)).join(', ')} · по памяти, около минуты</div><button class="btn pri" data-act="check" data-arg="${due[0].id}">Начать</button></div>`;
   else { const nx = [...S.keys].sort((a, b) => a.due - b.due)[0]; h += `<div class="card"><div class="row g10 acc">${ic(P.check, 22)}<div class="t18 b" style="color:var(--text)">На сегодня всё</div></div><div class="t14 c2">Следующая проверка — ${esc(nx.name)}, ${fmtDate(nx.due)} (${rel(nx.due)}). Напомним уведомлением.</div></div>`; }
-  if (S.keys.length) h += `<div class="sect">Мои ключи</div>${S.keys.map(keyCard).join('')}<div class="addcard" data-act="add">${ic(P.add, 20)}Добавить ключ</div>`;
-  return `<div class="scr">${appbar('Ключи', { back: false, sub: `${WDAYS[TODAY.getDay()]}, ${fmtDate(TODAY)}` })}<div class="body">${h}</div>${navbar('home')}</div>`;
+  if (S.keys.length) h += `<div class="sect">Мои ключи</div>${S.keys.map(keyCard).join('')}<div style="height:64px"></div>`;
+  return `<div class="scr">${appbar('Ключи', { back: false, sub: `${WDAYS[TODAY.getDay()]}, ${fmtDate(TODAY)}` })}<div class="body">${h}</div>${S.keys.length ? `<div class="fab" data-act="add" title="Добавить ключ">${ic(P.add, 30)}</div>` : ''}${navbar('home')}</div>`;
 } };
 function keyCard(k) {
   const n = diffDays(k.due);
   const st = !k.learned ? `<span class="st blue">Заучивание</span>` : n <= 0 ? `<span class="st amber">Пора проверить</span>` : `<span class="st">${rel(k.due)}</span>`;
-  const line = !k.learned ? 'Заучивание не закончено' : k.level >= 6 ? 'Поддержание · каждые 60 дней' : `Проверка ${k.level + 1} из 6 · интервал ${daysWord(INTERVALS[k.level])}`;
+  const line = !k.learned ? (k.blocks ? `Заучивание · блок ${Math.min((k.lessonBlock || 0) + 1, chunks(k.fmt, k.secret).length)} из ${chunks(k.fmt, k.secret).length}` : 'Заучивание не закончено') : k.level >= 6 ? 'Поддержание · каждые 60 дней' : `Проверка ${k.level + 1} из 6 · интервал ${daysWord(INTERVALS[k.level])}`;
   const copy = k.copy ? `<span class="cp ok">${ic(P.lock, 14)}копия</span>` : `<span class="cp bad">${ic(P.lock, 14)}нет копии</span>`;
   return `<div class="kc" data-act="key" data-arg="${k.id}">
-    <div class="row g12"><div class="kav f-${k.fmt}">${k.id}</div><div class="col w1"><div class="t17 b">${esc(k.name)}</div><div class="t13 c3">${FMT[k.fmt].name} · ${sizeText(k.fmt, k.secret)}</div></div>${st}</div>
+    <div class="row g12"><div class="col w1"><div class="t17 b">${esc(k.name)}</div><div class="t13 c3">${sizeText(k.fmt, k.secret)}</div></div>${st}</div>
     ${track(k)}<div class="row sb t13"><span class="c2">${line}</span>${copy}</div></div>`;
 }
 
@@ -663,8 +673,9 @@ SCR.key = { view({ id }) {
     ? `<button class="btn pri" data-act="continueLearn" data-arg="${k.id}">Продолжить заучивание</button>`
     : `<button class="btn pri" data-act="check" data-arg="${k.id}">${due ? 'Проверить сейчас' : 'Потренироваться'}</button>${k.copy ? `<button class="btn warn" data-act="peek" data-arg="${k.id}">${ic(P.lock, 20)}Подсмотреть</button>` : ''}`;
   return `<div class="scr">${appbar(esc(k.name))}<div class="body">
-    <div class="row g12"><div class="kav big f-${k.fmt}">${k.id}</div><div class="col w1"><div class="t20 b">${esc(k.name)}</div><div class="t14 c3">${FMT[k.fmt].name} · ${sizeText(k.fmt, k.secret)} · добавлен ${fmtDate(k.created)}</div></div></div>
+    <div class="col"><div class="t20 b">${esc(k.name)}</div><div class="t14 c3">${sizeText(k.fmt, k.secret)} · добавлен ${fmtDate(k.created)}</div></div>
     <div class="stats"><div><b>${k.checks}</b><span>проверок</span></div><div><b>${k.first}</b><span>с первой попытки</span></div><div><b class="${k.peeks ? 'amber' : ''}">${k.peeks}</b><span>подсмотров</span></div></div>
+    ${k.blocks ? blocksCard(k) : ''}
     ${copy}
     <div class="sect">Расписание</div><div class="col" style="padding:4px 4px 0">${tl || '<div class="t14 c3">Расписание начнётся после заучивания</div>'}</div>
     <div class="link" style="color:var(--red)" data-act="toast" data-arg="Удаление — после PIN и отпечатка, с подтверждением">Удалить ключ</div>
@@ -721,7 +732,7 @@ SCR.result = { view(p) {
 SCR.pin = { pin: true, view(p) {
   const k = key(p.id), left = Math.ceil((S.lockUntil - Date.now()) / 1000);
   const msg = left > 0 ? `<span class="red">Слишком много ошибок. Следующая попытка через <b id="lockleft">${left}</b> с</span>` : S.err ? `<span class="red">${S.err}</span>` : 'Потом — отпечаток пальца';
-  return `<div class="scr">${appbar(`${p.then === 'learn' ? 'Заучивание' : 'Подсмотр'} · ${esc(k.name)}`, { close: true })}
+  return `<div class="scr">${appbar(`${p.then === 'learn' ? 'Заучивание' : p.then === 'block' ? `Блок ${p.block + 1}` : 'Подсмотр'} · ${esc(k.name)}`, { close: true })}
     <div class="body center"><div class="bigic blue">${ic(P.lock, 44)}</div><div class="t20 b">Введите PIN приложения</div>${dots()}<div class="t14 c3 tc">${msg}</div></div>
     ${pinpad()}</div>`;
 }, enter() {
@@ -752,10 +763,10 @@ SCR.peek = { view(p) {
   }
   const parts = isW
     ? `<div class="phrase">${ch.map((x, i) => p.open.includes(i) ? `<span class="op">${esc(x)}</span>` : `<span class="hid ${p.where && wrongAt(i) ? 'hint' : ''}" data-act="part" data-arg="${i}">•••</span>`).join(' ')}</div>`
-    : `<div class="chunks ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => { const open = p.open.includes(i); return `<div class="ch slot ${open ? 'open' : ''} ${p.where && !open && wrongAt(i) ? 'hintbad' : ''}" data-act="part" data-arg="${i}"><span class="n">${i + 1}</span>${open ? esc(x) : '••••'}</div>`; }).join('')}</div>`;
+    : `<div class="chunks ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => { const open = p.open.includes(i); return `<div class="ch slot ${open ? 'open' : ''} ${p.where && !open && wrongAt(i) ? 'hintbad' : ''}" data-act="part" data-arg="${i}"><span class="n">${i + 1}</span>${open ? sym(x) : '••••'}</div>`; }).join('')}</div>`;
   h += `<div class="card lvl"><div class="lh"><span class="lv">${p.last ? 2 : 1}</span><div class="col w1"><div class="t16 b">Подсказать часть</div><div class="t13 c3">${isW ? 'Нажмите на скрытое слово, чтобы открыть только его.' : 'Нажмите на блок, чтобы открыть только его.'}</div></div></div>${parts}</div>`;
   h += `<div class="card lvl"><div class="lh"><span class="lv">${p.last ? 3 : 2}</span><div class="col w1"><div class="t16 b">Показать целиком</div><div class="t13 c3">Видно, пока держите палец на кнопке.</div></div></div>
-    <div class="fullbox" id="fullbox"><div class="hidden">${'•'.repeat(Math.min(norm(k.fmt, k.secret).length, 18))}</div><div class="shown">${esc(k.fmt === 'words' ? k.secret : ch.join(' '))}</div></div>
+    <div class="fullbox" id="fullbox"><div class="hidden">${'•'.repeat(Math.min(norm(k.fmt, k.secret).length, 18))}</div><div class="shown">${k.fmt === 'words' ? esc(k.secret) : sym(ch.join(' '))}</div></div>
     <div class="hold" data-hold="1">${ic(P.eye, 20)}Удерживайте, чтобы видеть</div></div>`;
   const right = `<div class="timer" id="ptimer">${Math.floor(p.left / 60)}:${String(p.left % 60).padStart(2, '0')}</div>`;
   return `<div class="scr">${appbar(`Подсмотр · ${esc(k.name)}`, { close: true, closeAct: 'peekDone', right })}<div class="body">${h}</div><div class="pad"><button class="btn pri" data-act="peekDone">Закрыть и ввести по памяти</button></div></div>`;
@@ -779,15 +790,20 @@ SCR.lost = { view({ id }) {
 
 SCR.add1 = { view(p) {
   const name = p.name ?? `Ключ ${nextLetter()}`;
-  const opts = Object.entries(FMT).map(([f, v]) => `<div class="opt ${p.fmt === f ? 'on' : ''}" data-act="fmt" data-arg="${f}"><div class="radio"></div><div class="col w1"><div class="t16 b">${v.name}</div><div class="t13 c3">${v.desc}</div></div><div class="ex">${v.ex}</div></div>`).join('');
   return `<div class="scr">${appbar('Новый ключ', { close: true, sub: 'шаг 1 из 4' })}<div class="body">
     <div class="lbl">Название</div><input class="tin" id="kname" value="${esc(name)}" maxlength="24">
     <div class="t13 c3" style="margin:-4px 4px 0">Видно на главной и в уведомлениях — не пишите в нём сам ключ.</div>
-    <div class="lbl">Из чего состоит ключ</div>${opts}
-  </div><div class="pad"><button class="btn pri" data-act="add1next" ${p.fmt ? '' : 'disabled'}>Дальше</button></div></div>`;
+    <div class="note">${ic(P.key, 18)}<span>Ключ — буквы, цифры и знаки, без пробелов. Учить будем блоками по 4 символа.</span></div>
+  </div><div class="pad"><button class="btn pri" data-act="add1next">Дальше</button></div></div>`;
 } };
 SCR.add2 = { view() {
-  return inputScreen({ title: `Новый ключ · ${esc(S.newKey.name)}`, sub: 'шаг 2 из 4', prompt: 'Введите ключ', hint: 'Ключ видит только RememberKey: системная клавиатура не участвует', fmt: S.newKey.fmt, btn: 'Дальше' });
+  // вставка из буфера — только при добавлении ключа; в проверках, тренировках и заучивании её нет
+  const pasted = S.newKey.pasted;
+  const below = pasted
+    ? `<div class="note">${ic(P.check, 18)}<span>Вставлено из буфера обмена, буфер очищен. Если клавиатура хранит историю буфера (например, Gboard), удалите ключ и оттуда. Повторный ввод не нужен — дальше сохранение.</span></div>`
+    : `<div class="link" data-act="paste">Вставить из буфера обмена</div>`;
+  return inputScreen({ title: `Новый ключ · ${esc(S.newKey.name)}`, sub: pasted ? 'шаг 2 из 3' : 'шаг 2 из 4', prompt: pasted ? 'Проверьте ключ' : 'Введите или вставьте ключ',
+    hint: pasted ? 'Нажмите на глаз, чтобы сверить его с оригиналом.' : 'Ключ видит только RememberKey: системная клавиатура не участвует', fmt: S.newKey.fmt, btn: pasted ? 'Сохранить' : 'Дальше', below });
 } };
 SCR.add3 = { view() {
   return inputScreen({ title: `Новый ключ · ${esc(S.newKey.name)}`, sub: 'шаг 3 из 4', prompt: 'Повторите ключ', hint: 'Чтобы исключить опечатку. Потом — отпечаток, он нужен, чтобы зашифровать копию.', fmt: S.newKey.fmt, btn: 'Сохранить' });
@@ -798,7 +814,7 @@ SCR.added = { view({ id }) {
   return `<div class="scr">${appbar(`Новый ключ · ${esc(k.name)}`, { close: true, closeAct: 'home', sub: 'шаг 4 из 4' })}<div class="body center">
     <div class="bigic ok">${ic(P.check, 48)}</div><div class="t26 xb">Ключ сохранён</div>
     <div class="card w100">${row('Проверочный хеш', 'для проверок — без PIN и отпечатка')}${row('Зашифрованная копия', 'чтобы подсмотреть — PIN и отпечаток')}</div>
-    <div class="t14 c2 tc" style="max-width:340px">Дальше — заучивание: 3 раза подряд по памяти, пара минут. Пока оно идёт, ключ можно смотреть свободно.</div>
+    <div class="t14 c2 tc" style="max-width:340px">${k.fmt === 'symbols' ? `Дальше — уроки по блокам из 4 символов: каждый блок 3 раза с подсказкой и 3 раза по памяти, потом весь ключ целиком.` : 'Дальше — заучивание: 3 раза подряд по памяти, пара минут.'} Пока оно идёт, ключ можно смотреть свободно.</div>
   </div><div class="pad"><button class="btn pri" data-act="learnStart" data-arg="${id}">Начать заучивание</button></div></div>`;
 } };
 
@@ -812,7 +828,7 @@ SCR.learn = { view(p) {
   const title = `Заучивание · ${esc(k.name)}`;
   if (p.phase === 'show') return `<div class="scr">${appbar(title, { close: true, closeAct: 'home' })}<div class="body">${steps}
       <div class="t20 b">Прочитайте и запомните</div>
-      ${isW ? `<div class="phrase big">${esc(k.secret)}</div>` : `<div class="chunks big ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => `<div class="ch"><span class="n">${i + 1}</span>${esc(x)}</div>`).join('')}</div>`}
+      ${isW ? `<div class="phrase big">${esc(k.secret)}</div>` : `<div class="chunks big ${c === 3 ? 'cols3' : ''}">${ch.map((x, i) => `<div class="ch"><span class="n">${i + 1}</span>${sym(x)}</div>`).join('')}</div>`}
       <div class="tip">${ic(P.bulb, 18)}<span>${TIPS[k.fmt]}</span></div>
     </div><div class="pad"><button class="btn pri" data-act="learnHide">Запомнил — скрыть</button></div></div>`;
   if (p.phase === 'wrong') {
@@ -827,6 +843,105 @@ SCR.learn = { view(p) {
   }
   return inputScreen({ title, top: steps, prompt: p.round === 1 ? 'Теперь — по памяти' : 'Ещё раз — без подсказки', hint: `${sizeText(k.fmt, k.secret)} · пока идёт заучивание, смотреть можно свободно`, fmt: k.fmt, below: `<div class="link" data-act="learnShow">Показать ещё раз</div>` });
 } };
+// ---------- уроки по блокам (ключ из символов) ----------
+// Блок: 3 ввода с подсказкой перед глазами, потом 3 по памяти; затем следующий блок; в конце весь ключ 3 раза подряд.
+function lessonStart(k) {
+  const n = chunks('symbols', k.secret).length, b = k.lessonBlock || 0;
+  return b >= n ? { id: k.id, mode: 'learn', block: null, stage: 'final', round: 1 } : { id: k.id, mode: 'learn', block: b, stage: 'hint', round: 1 };
+}
+function startBlock(k, i) {
+  const entry = log('learn', k, `Тренировка блока ${i + 1} · ${k.name}`, 'PIN и отпечаток · начата');
+  go('lesson', { id: k.id, mode: 'block', block: i, stage: 'hint', round: 1, entry }, 'replace');
+}
+// как помнится блок: по последним 5 вводам по памяти
+function strength(h = []) {
+  const last = h.slice(-5), bad = last.filter(x => !x).length;
+  if (!last.length) return 'new';
+  if (!bad && last.length >= 3) return 'good';
+  return bad >= 2 ? 'bad' : 'mid';
+}
+const STRENGTH = { good: 'помню хорошо', mid: 'бывают ошибки', bad: 'помню плохо', new: 'ещё не учили' };
+function keyStrip(k, p) {
+  const ch = chunks('symbols', k.secret);
+  return `<div class="strip" style="--n:${Math.min(ch.length, 5)}">${ch.map((x, j) => {
+    let cls = '', txt = '••••';
+    if (p.stage === 'final' || (p.stage === 'wrong' && p.block === null)) cls = 'all';
+    else if (j === p.block) { cls = 'cur'; if (p.stage === 'hint') { cls += ' hint'; txt = sym(x); } else txt = '????'; }
+    else if (p.mode === 'learn' && j < p.block) cls = 'done';
+    return `<div class="sk ${cls}"><span class="n">${cls.includes('done') ? '✓' : j + 1}</span>${txt}</div>`;
+  }).join('')}</div>`;
+}
+SCR.lesson = { view(p) {
+  const k = key(p.id), ch = chunks('symbols', k.secret), n = ch.length, solo = p.mode === 'block';
+  const title = solo ? `Блок ${p.block + 1} · ${esc(k.name)}` : `Заучивание · ${esc(k.name)}`;
+  const closeAct = solo ? 'back' : 'home';
+  if (p.stage === 'wrong') {
+    let diff;
+    if (p.block === null) {
+      const mine = chunks('symbols', p.wrong);
+      diff = `<div class="chunks ${cols('symbols', k.secret) === 3 ? 'cols3' : ''}">${ch.map((x, i) => { const ok = mine[i] && same('symbols', mine[i], x); return `<div class="ch ${ok ? 'good' : 'bad'}"><span class="n">${i + 1}</span><div class="col">${mine[i] ? esc(mine[i]) : '—'}${ok ? '' : `<span class="fix">${sym(x)}</span>`}</div><span class="mk">${ic(ok ? P.check : P.close, 14)}</span></div>`; }).join('')}</div>`;
+    } else {
+      diff = `<div class="chunks"><div class="ch bad"><span class="n">${p.block + 1}</span><div class="col">${esc(p.wrong) || '—'}<span class="fix">${sym(ch[p.block])}</span></div><span class="mk">${ic(P.close, 14)}</span></div></div>`;
+    }
+    return `<div class="scr">${appbar(title, { close: true, closeAct })}<div class="body">${keyStrip(k, p)}
+      <div class="t20 b">Почти. Вот расхождение</div><div class="t14 c3">В красной рамке — ваш ввод, зелёным под ним — как правильно. ${p.block === null ? 'Весь ключ — снова 3 раза подряд.' : 'Счёт «по памяти» начнётся заново.'}</div>
+      ${diff}</div><div class="pad"><button class="btn pri" data-act="lessonRetry">Понятно — снова по памяти</button></div></div>`;
+  }
+  if (p.stage === 'final') {
+    return inputScreen({ title, closeAct, top: keyStrip(k, p) + stepsBar(p.round, `Весь ключ · ${p.round} из 3 подряд`),
+      prompt: 'Теперь весь ключ целиком', hint: `${n} ${plural(n, 'блок', 'блока', 'блоков')} подряд, без подсказки`, fmt: 'symbols' });
+  }
+  const b = p.block + 1;
+  if (p.stage === 'hint') {
+    S.show = true; // глядя на подсказку, удобнее видеть и свой ввод
+    return inputScreen({ title, closeAct, top: keyStrip(k, p) + `<div class="hintbig"><span class="n">Подсказка · блок ${b}</span>${sym(ch[p.block])}</div>` + stepsBar(p.round, `Блок ${b}${solo ? '' : ` из ${n}`} · с подсказкой, ${p.round} из 3`),
+      prompt: `Введите блок ${b}, глядя на подсказку`, hint: 'Проговаривайте символы вслух: «Т большая, q, семь, решётка».', fmt: 'symbols' });
+  }
+  return inputScreen({ title, closeAct, top: keyStrip(k, p) + stepsBar(p.round, `Блок ${b}${solo ? '' : ` из ${n}`} · по памяти, ${p.round} из 3`),
+    prompt: `Блок ${b} — по памяти`, hint: 'Подсказка скрыта. Ошибка — и счёт «по памяти» начнётся заново.', fmt: 'symbols',
+    below: `<div class="link" data-act="lessonHint">Показать подсказку</div>` });
+} };
+function submitLesson() {
+  const p = S.params, k = key(p.id), ch = chunks('symbols', k.secret), n = ch.length;
+  if (p.stage === 'final') {
+    const mine = chunks('symbols', S.buf);
+    ch.forEach((x, j) => k.blocks[j].push(!!mine[j] && same('symbols', mine[j], x)));
+    if (!same('symbols', S.buf, k.secret)) { p.wrong = S.buf; p.stage = 'wrong'; p.round = 1; return render(); }
+    if (p.round < 3) { p.round++; resetInput('symbols'); render(); return toast(`Верно! Весь ключ ${p.round} из 3`); }
+    k.lessonBlock = n; return finishLearn(k);
+  }
+  const ok = same('symbols', S.buf, ch[p.block]);
+  if (p.stage === 'hint') {
+    if (!ok) { S.buf = ''; S.err = 'Не совпало с подсказкой — сверьте каждый символ.'; return render(); }
+    if (p.round < 3) { p.round++; resetInput('symbols'); render(); return toast(`Верно! С подсказкой ${p.round} из 3`); }
+    p.stage = 'recall'; p.round = 1; resetInput('symbols'); render(); return toast('Теперь без подсказки');
+  }
+  k.blocks[p.block].push(ok);
+  if (!ok) { p.wrong = S.buf; p.stage = 'wrong'; return render(); }
+  if (p.round < 3) { p.round++; resetInput('symbols'); render(); return toast(`Верно! По памяти ${p.round} из 3`); }
+  if (p.mode === 'block') {
+    p.entry.sub = '3 раза с подсказкой, 3 по памяти · расписание не меняется';
+    toast(`Блок ${p.block + 1} натренирован`); return back();
+  }
+  k.lessonBlock = p.block + 1;
+  if (p.block + 1 < n) { p.block++; p.stage = 'hint'; p.round = 1; resetInput('symbols'); render(); return toast(`Блок ${p.block} выучен. Дальше блок ${p.block + 1}`); }
+  p.block = null; p.stage = 'final'; p.round = 1; resetInput('symbols'); render(); toast('Все блоки выучены. Теперь весь ключ');
+}
+// карточка ключа: как помнится каждый блок
+function blocksCard(k) {
+  const tiles = chunks('symbols', k.secret).map((x, j) => {
+    const h = k.blocks[j] || [], st = strength(h), last = h.slice(-5);
+    const meter = [0, 1, 2, 3, 4].map(m => `<i class="${last[m] === undefined ? '' : last[m] ? 'y' : 'n'}"></i>`).join('');
+    return `<div class="bt" data-act="blockPractice" data-arg="${j}" title="Потренировать блок ${j + 1}">
+      <div class="row sb"><span class="t13 b">Блок ${j + 1}</span><span class="qd q-${st}"></span></div>
+      <div class="mask">••••</div><div class="meter">${meter}</div><div class="t12 q-${st}">${STRENGTH[st]}</div></div>`;
+  }).join('');
+  const weak = k.blocks.map((h, j) => [strength(h), j]).filter(([s]) => s === 'bad').map(([, j]) => j + 1);
+  return `<div class="sect">Блоки</div><div class="card"><div class="bgrid">${tiles}</div>
+    ${weak.length ? `<div class="note amber">${ic(P.warn, 18)}<span>Слабее всего ${weak.length > 1 ? 'блоки' : 'блок'} ${weak.join(', ')} — потренируйте ${weak.length > 1 ? 'их' : 'его'} отдельно.</span></div>` : ''}
+    <div class="t13 c3">Нажмите на блок, чтобы потренировать его: 3 раза с подсказкой и 3 по памяти. Нужны PIN и отпечаток, расписание не сдвигается. Полоски — последние вводы по памяти: в уроках, тренировках и при подсмотре. Обычная проверка идёт по хешу и не знает, в каком блоке ошибка.</div></div>`;
+}
+
 SCR.learned = { view({ id }) {
   const k = key(id);
   return `<div class="scr">${appbar(`Заучивание · ${esc(k.name)}`, { close: true, closeAct: 'home' })}<div class="body center">
@@ -945,7 +1060,13 @@ function submit() {
   const s = S.screen;
   if (s === 'check') return submitCheck();
   if (s === 'learn') return submitLearn();
-  if (s === 'add2') { S.newKey.first = S.buf; return go('add3', {}); }
+  if (s === 'lesson') return submitLesson();
+  if (s === 'add2') {
+    S.newKey.first = S.buf;
+    // вставленный ключ без опечаток: повторный ввод не нужен
+    if (S.newKey.pasted) { S.newKey.secret = S.buf; return bio('Зашифруем копию ключа — по ней можно будет подсмотреть', addSave, 'Подтвердите отпечатком'); }
+    return go('add3', {});
+  }
   if (s === 'add3') {
     if (!same(f, S.buf, S.newKey.first)) { S.err = 'Не совпадает с первым вводом. Введите ещё раз — или вернитесь на шаг назад.'; S.buf = ''; return render(); }
     S.newKey.secret = S.buf;
@@ -990,6 +1111,7 @@ function submitCheck() {
 }
 function createKey(n) {
   const k = { id: nextLetter(), name: n.name, fmt: n.fmt, secret: norm(n.fmt, n.secret), created: TODAY, learned: false, level: 0, due: TODAY, copy: true, checks: 0, first: 0, peeks: 0, hist: [] };
+  if (k.fmt === 'symbols') { k.blocks = chunks('symbols', k.secret).map(() => []); k.lessonBlock = 0; }
   S.keys.push(k); S.newKey = null;
   log('add', k, `Добавлен · ${k.name}`, `${sizeText(k.fmt, k.secret)} · хеш и зашифрованная копия`);
   return k;
@@ -1026,6 +1148,7 @@ function pinDone() {
   const k = key(p.id);
   if (v === S.pin) {
     S.pinFails = 0; render();
+    if (p.then === 'block') return bio(`Откроется блок ${p.block + 1} ключа ${k.name} — для тренировки`, () => startBlock(k, p.block));
     return bio(p.then === 'learn' ? `Откроется ${k.name}, чтобы продолжить заучивание` : `Откроется копия: ${k.name}`, () => p.then === 'learn' ? resumeLearn(k) : openPeek());
   }
   S.pinFails++;
@@ -1033,7 +1156,11 @@ function pinDone() {
   if (S.pinFails >= 3) { S.lockUntil = Date.now() + [30, 60, 300, 900][Math.min(S.pinFails - 3, 3)] * 1000; S.err = ''; render(); SCR.pin.enter(); }
   else { S.err = S.pinFails === 2 ? 'Неверный PIN. Ещё одна ошибка — и пауза 30 секунд.' : 'Неверный PIN'; render(); }
 }
-function resumeLearn(k) { log('peek', k, `Заучивание · ${k.name}`, 'Открыт по PIN и отпечатку, чтобы продолжить заучивание'); go('learn', { id: k.id, round: 1, phase: 'show' }, 'replace'); }
+function resumeLearn(k) {
+  log('peek', k, `Заучивание · ${k.name}`, 'Открыт по PIN и отпечатку, чтобы продолжить заучивание');
+  if (k.fmt === 'symbols') return go('lesson', lessonStart(k), 'replace');
+  go('learn', { id: k.id, round: 1, phase: 'show' }, 'replace');
+}
 function openPeek() {
   const p = S.params, k = key(p.id);
   k.peeks++;
@@ -1075,13 +1202,21 @@ function act(a, arg) {
     case 'continueLearn': return go('pin', { id: arg, then: 'learn' });
     case 'add': S.newKey = null; return go('add1', {});
     case 'fmt': p.name = $('#kname').value; p.fmt = arg; return render();
-    case 'add1next': { if (!p.fmt) return; const name = $('#kname').value.trim() || `Ключ ${nextLetter()}`; S.newKey = { name, fmt: p.fmt }; return go('add2', {}); }
-    case 'learnStart': return go('learn', { id: arg, round: 1, phase: 'show' }, 'replace');
+    case 'add1next': { const name = $('#kname').value.trim() || `Ключ ${nextLetter()}`; S.newKey = { name, fmt: 'symbols' }; return go('add2', {}); }
+    case 'learnStart': { const k = key(arg); return go(k.fmt === 'symbols' ? 'lesson' : 'learn', k.fmt === 'symbols' ? lessonStart(k) : { id: arg, round: 1, phase: 'show' }, 'replace'); }
+    case 'lessonRetry': p.stage = p.block === null ? 'final' : 'recall'; p.round = 1; resetInput('symbols'); return render();
+    case 'lessonHint': { const k = key(p.id); k.blocks[p.block].push(false); p.stage = 'hint'; p.round = 1; resetInput('symbols'); return render(); }
+    case 'blockPractice': { const k = key(p.id); if (!k.copy) return go('lost', { id: k.id }); return go('pin', { id: k.id, then: 'block', block: +arg }); }
     case 'learnHide': p.phase = 'recall'; resetInput(key(p.id).fmt); return render();
     case 'learnShow': p.phase = 'show'; return render();
     case 'learnAgain': p.phase = 'show'; return render();
     case 'eye': S.show = !S.show; return render();
     case 'kb': typeChar(arg); S.shift = false; return render();
+    case 'paste': {
+      // в приложении: ClipboardManager по нажатию, затем clearPrimaryClip(); пробелы в символах отбрасываются
+      const f = S.newKey.fmt; S.buf = norm(f, DEMO_NEW[f]); S.show = false; S.err = ''; S.newKey.pasted = true;
+      render(); return toast('Вставлено · буфер обмена очищен');
+    }
     case 'bksp': S.buf = S.buf.slice(0, -1); S.err = ''; return render();
     case 'shift': S.shift = !S.shift; return render();
     case 'lay': S.kb = arg; if (arg !== 'sym') S.kbAlpha = arg; S.shift = false; return render();
@@ -1091,8 +1226,8 @@ function act(a, arg) {
     case 'fp': return fpTouch();
     case 'bioCancel': { const o = S.overlay; S.overlay = null; if (o?.cancel) o.cancel(); return render(); }
     case 'diagRetry': p.paused = false; return render();
-    case 'where': p.where = true; peekLog(); return render();
-    case 'part': { const i = +arg; if (!p.open.includes(i)) { p.open.push(i); peekLog(); render(); } return; }
+    case 'where': { p.where = true; const k = key(p.id); if (k.blocks && p.last) { const mine = chunks(k.fmt, p.last); chunks(k.fmt, k.secret).forEach((x, i) => k.blocks[i].push(!!mine[i] && same(k.fmt, mine[i], x))); } peekLog(); return render(); }
+    case 'part': { const i = +arg; if (!p.open.includes(i)) { p.open.push(i); const k = key(p.id); if (k.blocks) k.blocks[i].push(false); peekLog(); render(); } return; }
     case 'peekDone': return peekDone();
     case 'filter': p.f = arg; return render();
     case 'diagRun': return go('diag', { done: 0, from: 'onboard' });
@@ -1136,7 +1271,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ---------- панель ----------
-const NAMES = { home: 'Главная', key: 'Ключ подробно', check: 'Ввод по памяти', result: 'Результат', pin: 'PIN', pinset: 'Создание PIN', peek: 'Подсмотр', lost: 'Копия уничтожена', add1: 'Новый ключ: название и формат', add2: 'Новый ключ: ввод', add3: 'Новый ключ: повтор', added: 'Ключ сохранён', learn: 'Заучивание', learned: 'Заучивание закончено', journal: 'Журнал', security: 'Защита', diag: 'Проверка телефона', onboard: 'Первый запуск', notif: 'Уведомление на экране блокировки' };
+const NAMES = { home: 'Главная', key: 'Ключ подробно', check: 'Ввод по памяти', result: 'Результат', pin: 'PIN', pinset: 'Создание PIN', peek: 'Подсмотр', lost: 'Копия уничтожена', add1: 'Новый ключ: название и формат', add2: 'Новый ключ: ввод', add3: 'Новый ключ: повтор', added: 'Ключ сохранён', learn: 'Заучивание', lesson: 'Урок по блокам', learned: 'Заучивание закончено', journal: 'Журнал', security: 'Защита', diag: 'Проверка телефона', onboard: 'Первый запуск', notif: 'Уведомление на экране блокировки' };
 function syncPanel() {
   const canFill = !!inputFmt() || !!SCR[S.screen].pin;
   $('#fillOk').disabled = !canFill; $('#fillBad').disabled = !canFill;
@@ -1151,7 +1286,7 @@ function fill(correct) {
   }
   const f = inputFmt(); if (!f) return;
   const s = S.screen, p = S.params;
-  const target = s === 'check' || s === 'learn' ? key(p.id).secret : s === 'add2' ? DEMO_NEW[f] : S.newKey.first;
+  const target = s === 'lesson' ? (p.stage === 'final' ? key(p.id).secret : chunks('symbols', key(p.id).secret)[p.block]) : s === 'check' || s === 'learn' ? key(p.id).secret : s === 'add2' ? DEMO_NEW[f] : S.newKey.first;
   S.buf = correct ? target : mutate(f, target); S.err = ''; render();
 }
 function ensureDemo() { stopTimers(); if (!key('A') || !key('B')) { S = initial(); } S.overlay = null; }
@@ -1159,13 +1294,13 @@ const J = {
   home() { ensureDemo(); go('home', {}, 'root'); },
   check() { ensureDemo(); const k = key('A'); goFromHome('check', { id: 'A', mode: diffDays(k.due) <= 0 ? 'check' : 'practice', attempt: 1 }); },
   practice() { ensureDemo(); goFromHome('check', { id: 'B', mode: 'practice', attempt: 1, round: 1 }); },
-  fail() { ensureDemo(); S.last = mutate('words', key('A').secret); goFromHome('result', { id: 'A', kind: 'fail', mode: 'check', attempt: 1 }); },
-  pin() { ensureDemo(); if (!key('A').copy) setLost(false); S.last = mutate('words', key('A').secret); goFromHome('pin', { id: 'A', last: S.last }); },
-  peek() { ensureDemo(); if (!key('A').copy) setLost(false); S.last = mutate('words', key('A').secret); S.stack = [{ screen: 'home', params: {} }]; S.screen = 'pin'; S.params = { id: 'A', last: S.last }; openPeek(); },
+  fail() { ensureDemo(); S.last = mutate('symbols', key('A').secret); goFromHome('result', { id: 'A', kind: 'fail', mode: 'check', attempt: 1 }); },
+  pin() { ensureDemo(); if (!key('A').copy) setLost(false); S.last = mutate('symbols', key('A').secret); goFromHome('pin', { id: 'A', last: S.last }); },
+  peek() { ensureDemo(); if (!key('A').copy) setLost(false); S.last = mutate('symbols', key('A').secret); S.stack = [{ screen: 'home', params: {} }]; S.screen = 'pin'; S.params = { id: 'A', last: S.last }; openPeek(); },
   key() { ensureDemo(); goFromHome('key', { id: 'A' }); },
   keyB() { ensureDemo(); goFromHome('key', { id: 'B' }); },
   add() { ensureDemo(); S.newKey = null; goFromHome('add1', {}); },
-  learn() { ensureDemo(); const k = S.keys.find(x => !x.learned) || createKey({ name: `Ключ ${nextLetter()}`, fmt: 'words', secret: DEMO_NEW.words }); goFromHome('learn', { id: k.id, round: 1, phase: 'show' }); },
+  lesson() { ensureDemo(); const k = S.keys.find(x => !x.learned && x.fmt === 'symbols') || createKey({ name: `Ключ ${nextLetter()}`, fmt: 'symbols', secret: DEMO_NEW.symbols }); goFromHome('lesson', lessonStart(k)); },
   journal() { ensureDemo(); go('journal', {}, 'root'); },
   security() { ensureDemo(); go('security', {}, 'root'); },
   diag() { ensureDemo(); S.stack = [{ screen: 'security', params: {} }]; S.screen = 'diag'; S.params = { done: 0, from: 'security' }; arrive(); },
@@ -1175,6 +1310,18 @@ const J = {
   first() { stopTimers(); S = initial(); S.keys = []; S.log = []; S.pin = ''; go('onboard', {}, 'root'); },
   reset() { stopTimers(); S = initial(); go('home', {}, 'root'); },
 };
+
+// тема
+const themeSeg = $('#themeSeg');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  themeSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  try { localStorage.setItem('rk-theme', t); } catch (e) {}
+}
+themeSeg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) applyTheme(b.dataset.t); });
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem('rk-theme') || 'dark'; } catch (e) {}
+applyTheme(savedTheme);
 
 // масштаб
 const zoomSel = $('#zoom');
